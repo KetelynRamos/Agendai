@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Dashboard Empreendedor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 260px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 28px;
+            padding: 0 8px;
+        }
+
+        .sidebar-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 12px 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .sidebar-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .sidebar-link:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: var(--primary);
+        }
+
+        .sidebar-link.danger {
+            color: var(--danger);
+        }
+
+        .sidebar-link.danger:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 12px 0;
+        }
+
+        /* ── MAIN ── */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* ── BANNER ── */
+        .top-banner {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 60%, #3b82f6 100%);
+            padding: 48px 40px 40px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-banner::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .top-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            right: 180px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .banner-greeting {
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.75;
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .banner-title {
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .banner-sub {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        /* ── STATS ROW ── */
+        .page-body {
+            padding: 32px 40px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-left: 4px solid transparent;
+        }
+
+        .stat-card.c-today {
+            border-color: var(--primary);
+        }
+
+        .stat-card.c-confirmed {
+            border-color: var(--success);
+        }
+
+        .stat-card.c-pending {
+            border-color: var(--warning);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .c-today .stat-icon {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .c-confirmed .stat-icon {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .c-pending .stat-icon {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .stat-info strong {
+            display: block;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .stat-info span {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h2 i {
+            color: var(--success);
+            font-size: 16px;
+        }
+
+        .link-manage {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: gap 0.2s;
+        }
+
+        .link-manage:hover {
+            gap: 8px;
+        }
+
+        /* ── TIMELINE DE AGENDAMENTOS ── */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .day-group {}
+
+        .day-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0 12px;
+        }
+
+        .day-label .day-badge {
+            background: var(--text);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .day-label .day-badge.today {
+            background: var(--primary);
+        }
+
+        .day-label .day-badge.tomorrow {
+            background: var(--success);
+        }
+
+        .day-label hr {
+            flex: 1;
+            border: none;
+            border-top: 1px dashed var(--border);
+        }
+
+        .appt-card {
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            border-left: 5px solid var(--success);
+            margin-bottom: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .appt-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Horário grande */
+        .appt-time {
+            text-align: center;
+            min-width: 54px;
+            flex-shrink: 0;
+        }
+
+        .appt-time .hour {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .appt-time .period {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* Divisor vertical */
+        .appt-divider {
+            width: 1px;
+            height: 44px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        /* Avatar */
+        .appt-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Info */
+        .appt-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .appt-info h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .appt-info p {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .appt-info p i {
+            font-size: 11px;
+            color: var(--primary);
+        }
+
+        /* Badge confirmado */
+        .badge-confirmed {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--success-light);
+            color: #065f46;
+            flex-shrink: 0;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 70px 20px;
+            color: var(--muted);
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state i {
+            font-size: 52px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .empty-state a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 18px;
+            background: var(--primary);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .empty-state a:hover {
+            background: var(--primary-hover);
+        }
+
+        @media (max-width: 900px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar {
+                display: none;
+            }
+
+            .page-body {
+                padding: 20px;
+            }
+
+            .top-banner {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-calendar-alt"></i>
+            AgendAi
+        </div>
+
+        <span class="sidebar-section-label">Menu</span>
+
+        <a href="dashboard_empreendedor.html" class="sidebar-link active">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+        </a>
+        <a href="meus_agendamentos_empreendedor.html" class="sidebar-link">
+            <i class="fas fa-calendar-check"></i>
+            Meus Agendamentos
+        </a>
+        <a href="disponibilidade_empreendedor.html" class="sidebar-link">
+            <i class="fas fa-clock"></i>
+            Disponibilidade
+        </a>
+
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-divider"></div>
+
+        <a href="index.html" class="sidebar-link danger"
+            onclick="event.preventDefault(); window.location.href='index.html';">
+            <i class="fas fa-sign-out-alt"></i>
+            Sair
+        </a>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="main-content">
+
+        <!-- Banner -->
+        <div class="top-banner">
+            <div class="banner-greeting" id="greetingText">Bom dia 👋</div>
+            <div class="banner-title">Painel de Gestão</div>
+            <div class="banner-sub">Confira seus agendamentos confirmados a seguir.</div>
+        </div>
+
+        <div class="page-body">
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card c-today">
+                    <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="stat-info">
+                        <strong id="statToday">0</strong>
+                        <span>Hoje</span>
+                    </div>
+                </div>
+                <div class="stat-card c-confirmed">
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <strong id="statTotal">0</strong>
+                        <span>Confirmados</span>
+                    </div>
+                </div>
+                <div class="stat-card c-pending">
+                    <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="stat-info">
+                        <strong id="statPending">0</strong>
+                        <span>Pendentes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cabeçalho da seção -->
+            <div class="section-header">
+                <h2>
+                    <i class="fas fa-check-circle"></i>
+                    Agendamentos Confirmados
+                </h2>
+                <a href="meus_agendamentos_empreendedor.html" class="link-manage">
+                    Gerenciar todos <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Timeline -->
+            <div id="timeline" class="timeline"></div>
+
+        </div>
+    </main>
+
+    <script>
+        /* ─── DADOS ─────────────────────────────────────────── */
+        // Os mesmos dados do meus_agendamentos_empreendedor.html
+        // Em produção, este array viria de um banco/API compartilhado
+        const allAppointments = [
+            { id: 1, cliente: 'João Silva', servico: 'Corte de Cabelo', data: '2026-04-10', hora: '14:00', status: 'pending' },
+            { id: 2, cliente: 'Maria Souza', servico: 'Manicure e Pedicure', data: '2026-04-10', hora: '16:30', status: 'pending' },
+            { id: 3, cliente: 'Pedro Lima', servico: 'Consulta Nutricional', data: '2026-04-11', hora: '09:00', status: 'confirmed' },
+            { id: 4, cliente: 'Ana Beatriz', servico: 'Design de Sobrancelhas', data: '2026-04-12', hora: '11:00', status: 'confirmed' },
+            { id: 5, cliente: 'Carlos Mendes', servico: 'Barba Completa', data: '2026-04-13', hora: '10:30', status: 'cancelled' },
+            { id: 6, cliente: 'Fernanda Costa', servico: 'Hidratação Capilar', data: '2026-04-14', hora: '15:00', status: 'pending' },
+        ];
+
+        /* ─── SAUDAÇÃO ───────────────────────────────────────── */
+        function setGreeting() {
+            const h = new Date().getHours();
+            const greeting = h < 12 ? 'Bom dia 👋' : h < 18 ? 'Boa tarde 👋' : 'Boa noite 👋';
+            document.getElementById('greetingText').textContent = greeting;
+        }
+
+        /* ─── HELPERS DE DATA ────────────────────────────────── */
+        function dateLabel(dateStr) {
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+            const d = new Date(dateStr + 'T00:00:00');
+
+            if (d.getTime() === today.getTime()) return { label: 'Hoje', cls: 'today' };
+            if (d.getTime() === tomorrow.getTime()) return { label: 'Amanhã', cls: 'tomorrow' };
+
+            return {
+                label: d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }),
+                cls: ''
+            };
+        }
+
+        function fmtHour(hora) {
+            return hora || '--:--';
+        }
+
+        /* ─── RENDER ─────────────────────────────────────────── */
+        function render() {
+            setGreeting();
+
+            // Filtra só confirmados e ordena por data+hora
+            const confirmed = allAppointments
+                .filter(a => a.status === 'confirmed')
+                .sort((a, b) => {
+                    const da = new Date(`${a.data}T${a.hora}`);
+                    const db = new Date(`${b.data}T${b.hora}`);
+                    return da - db;
+                });
+
+            // Stats
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('statTotal').textContent = confirmed.length;
+            document.getElementById('statToday').textContent = confirmed.filter(a => a.data === today).length;
+            document.getElementById('statPending').textContent =
+                allAppointments.filter(a => a.status === 'pending').length;
+
+            const timeline = document.getElementById('timeline');
+
+            if (confirmed.length === 0) {
+                timeline.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-check"></i>
+                    <h3>Nenhum agendamento confirmado</h3>
+                    <p>Acesse a sua lista de agendamentos para aceitar os pedidos pendentes.</p>
+                    <a href="meus_agendamentos_empreendedor.html">
+                        <i class="fas fa-list"></i> Ver agendamentos
+                    </a>
+                </div>`;
+                return;
+            }
+
+            // Agrupa por data
+            const groups = {};
+            confirmed.forEach(a => {
+                if (!groups[a.data]) groups[a.data] = [];
+                groups[a.data].push(a);
+            });
+
+            let html = '';
+            let delay = 0;
+
+            Object.keys(groups).sort().forEach(date => {
+                const { label, cls } = dateLabel(date);
+                html += `
+                <div class="day-group">
+                    <div class="day-label">
+                        <span class="day-badge ${cls}">${label}</span>
+                        <hr>
+                    </div>`;
+
+                groups[date].forEach(a => {
+                    const initial = a.cliente.charAt(0).toUpperCase();
+                    html += `
+                    <div class="appt-card" style="animation-delay:${delay * 0.06}s">
+                        <div class="appt-time">
+                            <div class="hour">${fmtHour(a.hora)}</div>
+                            <div class="period">hr</div>
+                        </div>
+                        <div class="appt-divider"></div>
+                        <div class="appt-avatar">${initial}</div>
+                        <div class="appt-info">
+                            <h3>${a.cliente}</h3>
+                            <p><i class="fas fa-cut"></i>${a.servico}</p>
+                        </div>
+                        <span class="badge-confirmed">✅ Confirmado</span>
+                    </div>`;
+                    delay++;
+                });
+
+                html += `</div>`;
+            });
+
+            timeline.innerHTML = html;
+        }
+
+        render();
+    </script>
+</body>
+
+</html>

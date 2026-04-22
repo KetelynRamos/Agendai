@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Meus Agendamentos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59,130,246,0.15);
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --sidebar-w: 260px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 28px;
+            padding: 0 8px;
+        }
+
+        .sidebar-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 12px 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .sidebar-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .sidebar-link:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; height: 60%;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: var(--primary);
+        }
+
+        .sidebar-link.danger { color: var(--danger); }
+        .sidebar-link.danger:hover { background: var(--danger-light); color: var(--danger); }
+
+        .sidebar-spacer { flex: 1; }
+        .sidebar-divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+        /* ── LAYOUT PRINCIPAL ── */
+        .page-wrapper {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* ── HEADER ── */
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .page-header p {
+            font-size: 15px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-left: 4px solid transparent;
+        }
+
+        .stat-card.c-total  { border-color: var(--primary); }
+        .stat-card.c-pending { border-color: var(--warning); }
+        .stat-card.c-confirmed { border-color: var(--success); }
+        .stat-card.c-cancelled { border-color: var(--danger); }
+
+        .stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .c-total    .stat-icon { background: var(--primary-light); color: var(--primary); }
+        .c-pending  .stat-icon { background: var(--warning-light); color: var(--warning); }
+        .c-confirmed .stat-icon { background: var(--success-light); color: var(--success); }
+        .c-cancelled .stat-icon { background: var(--danger-light); color: var(--danger); }
+
+        .stat-info strong {
+            display: block;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .stat-info span {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* ── FILTROS ── */
+        .filters-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+
+        .filter-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .search-wrap {
+            margin-left: auto;
+            position: relative;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .search-input {
+            padding: 9px 12px 9px 34px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            width: 220px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--white);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        /* ── CARDS DE AGENDAMENTO ── */
+        .appointments-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .appt-card {
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-left: 5px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .appt-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+        }
+
+        .appt-card.status-pending   { border-color: var(--warning); }
+        .appt-card.status-confirmed { border-color: var(--success); }
+        .appt-card.status-cancelled {
+            border-color: var(--danger);
+            opacity: 0.6;
+            filter: grayscale(0.3);
+        }
+
+        /* Avatar */
+        .appt-avatar {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Infos */
+        .appt-info { flex: 1; min-width: 0; }
+
+        .appt-info h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .appt-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .appt-meta span {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .appt-meta i { font-size: 11px; color: var(--primary); }
+
+        /* Badge de status */
+        .appt-badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .badge-pending   { background: var(--warning-light); color: #92400e; }
+        .badge-confirmed { background: var(--success-light); color: #065f46; }
+        .badge-cancelled { background: var(--danger-light);  color: #991b1b; }
+
+        /* Botões de ação */
+        .appt-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-action {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-confirm {
+            background: var(--success-light);
+            color: #065f46;
+        }
+
+        .btn-confirm:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-reject {
+            background: var(--danger-light);
+            color: #991b1b;
+        }
+
+        .btn-reject:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-chat {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-chat:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Estado vazio */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p { font-size: 14px; }
+
+        /* ── PAINEL DE CHAT ── */
+        .chat-panel {
+            width: 320px;
+            background: var(--white);
+            border-left: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .chat-panel.open { display: flex; }
+
+        .chat-panel-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-panel-header .chat-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white; font-weight: 700; font-size: 15px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .chat-panel-header .chat-name {
+            flex: 1;
+        }
+
+        .chat-panel-header .chat-name strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .chat-panel-header .chat-name span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .chat-close-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s;
+            width: auto !important;
+        }
+
+        .chat-close-btn:hover { color: var(--danger); background: var(--danger-light); }
+
+        .chat-messages-area {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f8fafc;
+        }
+
+        .msg-bubble {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .msg-bubble.sent {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-bubble.received {
+            background: var(--white);
+            color: var(--text);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .msg-bubble .msg-sender {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 3px;
+            opacity: 0.75;
+        }
+
+        .chat-input-row {
+            padding: 14px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .chat-input-row input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .chat-send {
+            width: 40px !important;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            padding: 0;
+            transition: background 0.2s;
+        }
+
+        .chat-send:hover { background: var(--primary-hover); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: var(--success); }
+        .toast.error   { background: var(--danger);  }
+
+        @media (max-width: 1100px) {
+            .stats-row { grid-template-columns: repeat(2,1fr); }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar { display: none; }
+            .main-content { padding: 20px; }
+            .chat-panel { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-calendar-alt"></i>
+        AgendAi
+    </div>
+
+    <span class="sidebar-section-label">Menu</span>
+
+    <a href="dashboard_empreendedor.html" class="sidebar-link">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+    </a>
+    <a href="meus_agendamentos_empreendedor.html" class="sidebar-link active">
+        <i class="fas fa-calendar-check"></i>
+        Meus Agendamentos
+    </a>
+    <a href="disponibilidade_empreendedor.html" class="sidebar-link">
+        <i class="fas fa-clock"></i>
+        Disponibilidade
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+
+    <a href="index.html" class="sidebar-link danger"
+       onclick="event.preventDefault(); window.location.href='index.html';">
+        <i class="fas fa-sign-out-alt"></i>
+        Sair
+    </a>
+</aside>
+
+<!-- ── WRAPPER ── -->
+<div class="page-wrapper">
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Início</span>
+                    <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+                    <span>Meus Agendamentos</span>
+                </div>
+                <h1>Meus Agendamentos</h1>
+                <p>Gerencie, confirme ou cancele os pedidos dos seus clientes.</p>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card c-total">
+                <div class="stat-icon"><i class="fas fa-list"></i></div>
+                <div class="stat-info">
+                    <strong id="statTotal">0</strong>
+                    <span>Total</span>
+                </div>
+            </div>
+            <div class="stat-card c-pending">
+                <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="stat-info">
+                    <strong id="statPending">0</strong>
+                    <span>Pendentes</span>
+                </div>
+            </div>
+            <div class="stat-card c-confirmed">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <strong id="statConfirmed">0</strong>
+                    <span>Confirmados</span>
+                </div>
+            </div>
+            <div class="stat-card c-cancelled">
+                <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="stat-info">
+                    <strong id="statCancelled">0</strong>
+                    <span>Cancelados</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-row">
+            <button class="filter-chip active" data-filter="todos" onclick="setFilter(this)">Todos</button>
+            <button class="filter-chip" data-filter="pending" onclick="setFilter(this)">
+                <i class="fas fa-hourglass-half" style="margin-right:5px;font-size:11px;"></i>Pendentes
+            </button>
+            <button class="filter-chip" data-filter="confirmed" onclick="setFilter(this)">
+                <i class="fas fa-check-circle" style="margin-right:5px;font-size:11px;"></i>Confirmados
+            </button>
+            <button class="filter-chip" data-filter="cancelled" onclick="setFilter(this)">
+                <i class="fas fa-times-circle" style="margin-right:5px;font-size:11px;"></i>Cancelados
+            </button>
+            <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="searchInput"
+                       placeholder="Buscar cliente ou serviço..."
+                       oninput="renderAppointments()">
+            </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="appointments-grid" id="appointmentsGrid"></div>
+
+    </main>
+
+    <!-- CHAT PANEL -->
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-panel-header">
+            <div class="chat-avatar" id="chatAvatar">?</div>
+            <div class="chat-name">
+                <strong id="chatClientName">Cliente</strong>
+                <span id="chatService">Serviço</span>
+            </div>
+            <button class="chat-close-btn" onclick="closeChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-messages-area" id="chatMessages"></div>
+        <div class="chat-input-row">
+            <input type="text" id="chatInput" placeholder="Digite uma mensagem..." onkeypress="handleChatKey(event)">
+            <button class="chat-send" onclick="sendChatMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle" id="toastIcon"></i>
+    <span id="toastMsg">Mensagem</span>
+</div>
+
+<script>
+    /* ─── DADOS DE AGENDAMENTOS ───────────────────────────── */
+    // Dados mockados para demonstração (em produção, viria do localStorage ou API)
+    let appointments = [
+        { id: 1, cliente: 'João Silva',    servico: 'Corte de Cabelo',       data: '2026-04-10', hora: '14:00', status: 'pending'   },
+        { id: 2, cliente: 'Maria Souza',   servico: 'Manicure e Pedicure',   data: '2026-04-10', hora: '16:30', status: 'pending'   },
+        { id: 3, cliente: 'Pedro Lima',    servico: 'Consulta Nutricional',  data: '2026-04-11', hora: '09:00', status: 'confirmed' },
+        { id: 4, cliente: 'Ana Beatriz',   servico: 'Design de Sobrancelhas', data: '2026-04-12', hora: '11:00', status: 'confirmed' },
+        { id: 5, cliente: 'Carlos Mendes', servico: 'Barba Completa',         data: '2026-04-13', hora: '10:30', status: 'cancelled' },
+        { id: 6, cliente: 'Fernanda Costa', servico: 'Hidratação Capilar',   data: '2026-04-14', hora: '15:00', status: 'pending'   },
+    ];
+
+    // Tenta carregar agendamentos do localStorage do cliente
+    const clientAppointments = JSON.parse(localStorage.getItem('meus_agendamentos_cliente')) || [];
+    clientAppointments.forEach((ag, i) => {
+        appointments.push({
+            id: 100 + i,
+            cliente: ag.nome || 'Cliente',
+            servico: ag.especialidade || 'Serviço',
+            data: ag.data || '',
+            hora: ag.hora || '',
+            status: 'pending'
+        });
+    });
+
+    let activeFilter = 'todos';
+    let activeChatId = null;
+
+    /* ─── FILTRO ─────────────────────────────────────────── */
+    function setFilter(btn) {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        renderAppointments();
+    }
+
+    /* ─── RENDER CARDS ───────────────────────────────────── */
+    function renderAppointments() {
+        const grid = document.getElementById('appointmentsGrid');
+        const query = document.getElementById('searchInput').value.toLowerCase();
+
+        let filtered = appointments.filter(a => {
+            const matchFilter = activeFilter === 'todos' || a.status === activeFilter;
+            const matchSearch = a.cliente.toLowerCase().includes(query) ||
+                                a.servico.toLowerCase().includes(query);
+            return matchFilter && matchSearch;
+        });
+
+        updateStats();
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>Nenhum agendamento encontrado</h3>
+                    <p>Tente ajustar os filtros ou aguarde novos pedidos.</p>
+                </div>`;
+            return;
+        }
+
+        grid.innerHTML = filtered.map((a, idx) => {
+            const initial = a.cliente.charAt(0).toUpperCase();
+            const badgeClass  = { pending: 'badge-pending', confirmed: 'badge-confirmed', cancelled: 'badge-cancelled' }[a.status];
+            const badgeLabel  = { pending: '⏳ Pendente',   confirmed: '✅ Confirmado',   cancelled: '❌ Cancelado'    }[a.status];
+            const cardClass   = `status-${a.status}`;
+            const dataFmt = a.data ? formatDate(a.data) : '—';
+            const isCancelled = a.status === 'cancelled';
+
+            const actionBtns = isCancelled ? '' : `
+                ${a.status === 'pending' ? `
+                <button class="btn-action btn-confirm" onclick="confirmAppt(${a.id})">
+                    <i class="fas fa-check"></i> Confirmar
+                </button>` : ''}
+                <button class="btn-action btn-chat" onclick="openChat(${a.id})">
+                    <i class="fas fa-comment"></i> Chat
+                </button>
+                ${a.status === 'pending' ? `
+                <button class="btn-action btn-reject" onclick="cancelAppt(${a.id})">
+                    <i class="fas fa-times"></i> Recusar
+                </button>` : ''}
+            `;
+
+            return `
+            <div class="appt-card ${cardClass}" id="appt-${a.id}" style="animation-delay:${idx * 0.05}s">
+                <div class="appt-avatar">${initial}</div>
+                <div class="appt-info">
+                    <h3>${a.cliente}</h3>
+                    <div class="appt-meta">
+                        <span><i class="fas fa-cut"></i>${a.servico}</span>
+                        <span><i class="fas fa-calendar-day"></i>${dataFmt}</span>
+                        <span><i class="fas fa-clock"></i>${a.hora}</span>
+                    </div>
+                </div>
+                <span class="appt-badge ${badgeClass}">${badgeLabel}</span>
+                <div class="appt-actions">${actionBtns}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const [y, m, d] = dateStr.split('-');
+        return `${d}/${m}/${y}`;
+    }
+
+    function updateStats() {
+        document.getElementById('statTotal').textContent     = appointments.length;
+        document.getElementById('statPending').textContent   = appointments.filter(a => a.status === 'pending').length;
+        document.getElementById('statConfirmed').textContent = appointments.filter(a => a.status === 'confirmed').length;
+        document.getElementById('statCancelled').textContent = appointments.filter(a => a.status === 'cancelled').length;
+    }
+
+    /* ─── AÇÕES ──────────────────────────────────────────── */
+    function confirmAppt(id) {
+        const a = appointments.find(x => x.id === id);
+        if (!a) return;
+        a.status = 'confirmed';
+        renderAppointments();
+        showToast(`Agendamento de ${a.cliente} confirmado!`, 'success');
+    }
+
+    function cancelAppt(id) {
+        const a = appointments.find(x => x.id === id);
+        if (!a) return;
+        if (!confirm(`Recusar agendamento de ${a.cliente}?`)) return;
+        a.status = 'cancelled';
+        renderAppointments();
+        showToast(`Agendamento de ${a.cliente} recusado.`, 'error');
+    }
+
+    /* ─── CHAT ───────────────────────────────────────────── */
+    function openChat(id) {
+        const a = appointments.find(x => x.id === id);
+        if (!a) return;
+        activeChatId = id;
+
+        document.getElementById('chatPanel').classList.add('open');
+        document.getElementById('chatClientName').textContent = a.cliente;
+        document.getElementById('chatService').textContent    = a.servico;
+        document.getElementById('chatAvatar').textContent     = a.cliente.charAt(0).toUpperCase();
+
+        loadChatMessages(a.cliente);
+    }
+
+    function closeChat() {
+        document.getElementById('chatPanel').classList.remove('open');
+        activeChatId = null;
+    }
+
+    function loadChatMessages(clienteName) {
+        const area = document.getElementById('chatMessages');
+        const history = JSON.parse(localStorage.getItem(`chat_emp_${clienteName}`)) || [];
+
+        if (history.length === 0) {
+            area.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:13px;margin-top:40px;">
+                <i class="fas fa-comment-dots" style="font-size:32px;color:#cbd5e1;display:block;margin-bottom:10px;"></i>
+                Inicie a conversa com ${clienteName}
+            </div>`;
+        } else {
+            area.innerHTML = history.map(m => `
+                <div class="msg-bubble ${m.sender === 'Você' ? 'sent' : 'received'}">
+                    <div class="msg-sender">${m.sender}</div>
+                    ${m.text}
+                </div>`).join('');
+        }
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const text  = input.value.trim();
+        if (!text || activeChatId === null) return;
+
+        const a = appointments.find(x => x.id === activeChatId);
+        if (!a) return;
+
+        const key     = `chat_emp_${a.cliente}`;
+        const history = JSON.parse(localStorage.getItem(key)) || [];
+        const msg     = { sender: 'Você', text };
+        history.push(msg);
+        localStorage.setItem(key, JSON.stringify(history));
+
+        const area = document.getElementById('chatMessages');
+        area.insertAdjacentHTML('beforeend', `
+            <div class="msg-bubble sent">
+                <div class="msg-sender">Você</div>
+                ${text}
+            </div>`);
+        area.scrollTop = area.scrollHeight;
+        input.value = '';
+    }
+
+    function handleChatKey(e) {
+        if (e.key === 'Enter') sendChatMessage();
+    }
+
+    /* ─── TOAST ──────────────────────────────────────────── */
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        const icon  = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.className = `toast ${type} show`;
+        icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-times-circle';
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    /* ─── INIT ───────────────────────────────────────────── */
+    renderAppointments();
+</script>
+</body>
+</html>

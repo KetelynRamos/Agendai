@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Encontre Profissionais</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59,130,246,0.15);
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 240px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 18px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--primary);
+            font-size: 21px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            padding: 0 6px;
+        }
+
+        .sidebar-section-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 10px 5px;
+        }
+
+        /* Links simples */
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-link i { width: 17px; text-align: center; font-size: 14px; }
+
+        .sidebar-link:hover { background: var(--primary-light); color: var(--primary); }
+
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; height: 60%;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: var(--primary);
+        }
+
+        .sidebar-link.danger { color: var(--danger); }
+        .sidebar-link.danger:hover { background: var(--danger-light); }
+
+        /* Seção de categorias expansível */
+        .cat-toggle {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            font-family: inherit;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .cat-toggle i.icon { width: 17px; text-align: center; font-size: 14px; }
+        .cat-toggle .arrow { margin-left: auto; font-size: 11px; transition: transform 0.25s; }
+        .cat-toggle.open .arrow { transform: rotate(180deg); }
+        .cat-toggle:hover { background: var(--primary-light); color: var(--primary); }
+
+        .cat-list {
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            padding-left: 28px;
+            margin-bottom: 4px;
+        }
+
+        .cat-list.show { display: flex; }
+
+        .cat-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cat-btn:hover { background: var(--primary-light); color: var(--primary); }
+
+        .cat-btn.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .cat-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .sidebar-spacer { flex: 1; }
+        .sidebar-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+        /* ── MAIN ── */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── BANNER ── */
+        .top-banner {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #60a5fa 100%);
+            padding: 44px 40px 36px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .top-banner::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 240px; height: 240px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .top-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -70px; right: 200px;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .banner-greeting {
+            font-size: 13px;
+            opacity: 0.75;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .banner-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .banner-sub {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 22px;
+        }
+
+        /* Barra de busca no banner */
+        .banner-search {
+            display: flex;
+            gap: 10px;
+            max-width: 520px;
+        }
+
+        .banner-search-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .banner-search-wrap i {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .banner-search input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .btn-search {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.18);
+            border: 1.5px solid rgba(255,255,255,0.35);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+            width: auto !important;
+        }
+
+        .btn-search:hover { background: rgba(255,255,255,0.28); }
+
+        /* ── GRID BODY ── */
+        .grid-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 32px 32px;
+        }
+
+        .grid-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .grid-header h2 {
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-count {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* ── PRO CARDS ── */
+        .professional-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .pro-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.22s, box-shadow 0.22s;
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .pro-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.11);
+        }
+
+        /* Foto / header do card */
+        .pro-card-header {
+            height: 130px;
+            position: relative;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .pro-card-header img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        .pro-avatar-fallback {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            font-size: 26px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pro-cat-badge {
+            position: absolute;
+            top: 10px; right: 10px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Body do card */
+        .pro-body {
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .pro-name { font-size: 16px; font-weight: 700; }
+
+        .pro-specialty {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pro-specialty i { color: var(--primary); font-size: 11px; }
+
+        .pro-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .pro-rating span { color: var(--muted); font-weight: 400; }
+
+        /* Inputs de data/hora */
+        .schedule-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .schedule-row input {
+            padding: 8px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin: 0;
+            background: var(--bg);
+        }
+
+        .schedule-row input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .btn-agendar {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.22s;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .btn-agendar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(59,130,246,0.4);
+        }
+
+        /* Empty state */
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 70px 20px;
+        }
+
+        .empty-state i { font-size: 50px; color: #cbd5e1; display: block; margin-bottom: 14px; }
+        .empty-state h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+        .empty-state p { font-size: 14px; color: var(--muted); }
+
+        /* ── MODAL SUCESSO ── */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(16,185,129,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .modal-icon {
+            font-size: 72px;
+            margin-bottom: 18px;
+            animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-overlay h2 { font-size: 30px; font-weight: 800; margin-bottom: 10px; }
+        .modal-overlay p  { font-size: 17px; line-height: 1.6; margin-bottom: 28px; opacity: 0.9; }
+
+        .btn-ok {
+            background: white;
+            color: var(--success);
+            border: none;
+            padding: 12px 48px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s;
+            width: auto !important;
+        }
+
+        .btn-ok:hover { transform: scale(1.04); }
+
+        /* ── CHAT PANEL (modal lateral) ── */
+        .chat-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 800;
+            backdrop-filter: blur(2px);
+        }
+
+        .chat-overlay.open { display: block; }
+
+        .chat-panel {
+            position: fixed;
+            top: 0; right: -380px;
+            width: 360px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .chat-panel.open { right: 0; }
+
+        .chat-panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .chat-p-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 800;
+        }
+
+        .chat-p-info { flex: 1; }
+        .chat-p-info strong { display: block; font-size: 15px; font-weight: 700; }
+        .chat-p-info span { font-size: 12px; opacity: 0.8; }
+
+        .chat-close {
+            background: rgba(255,255,255,0.15); border: none;
+            color: white; width: 32px !important; height: 32px;
+            border-radius: 8px; cursor: pointer; font-size: 16px;
+            display: flex !important; align-items: center; justify-content: center;
+            transition: background 0.2s; padding: 0;
+        }
+
+        .chat-close:hover { background: rgba(255,255,255,0.3); }
+
+        .chat-messages-area {
+            flex: 1; padding: 16px;
+            overflow-y: auto; background: #f8fafc;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .chat-empty {
+            text-align: center; margin-top: 40px;
+            color: var(--muted); font-size: 13px;
+        }
+
+        .chat-empty i { font-size: 36px; color: #cbd5e1; display: block; margin-bottom: 10px; }
+
+        .msg-bubble {
+            max-width: 80%; padding: 10px 13px;
+            border-radius: 14px; font-size: 13px; line-height: 1.5;
+        }
+
+        .msg-bubble.sent {
+            background: var(--primary); color: white;
+            align-self: flex-end; border-bottom-right-radius: 4px;
+        }
+
+        .msg-bubble.received {
+            background: white; color: var(--text);
+            align-self: flex-start; border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .msg-time {
+            font-size: 10px; opacity: 0.6; margin-top: 3px; text-align: right;
+        }
+
+        .chat-input-row {
+            padding: 14px; border-top: 1px solid var(--border);
+            display: flex; gap: 8px; flex-shrink: 0;
+        }
+
+        .chat-input-row input {
+            flex: 1; padding: 10px 14px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 13px; font-family: 'Inter', sans-serif;
+            outline: none; transition: border-color 0.2s; margin: 0;
+        }
+
+        .chat-input-row input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .chat-send {
+            width: 40px !important; height: 40px;
+            border-radius: 10px; background: var(--primary); color: white;
+            border: none; cursor: pointer; font-size: 15px;
+            display: flex !important; align-items: center; justify-content: center;
+            padding: 0; transition: background 0.2s;
+        }
+
+        .chat-send:hover { background: var(--primary-hover); }
+
+        /* Botão chat no card */
+        .btn-chat-card {
+            width: 100%; padding: 9px;
+            background: var(--primary-light); color: var(--primary);
+            border: 1.5px solid rgba(59,130,246,0.25);
+            border-radius: 10px; font-size: 13px; font-weight: 600;
+            font-family: 'Inter', sans-serif; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; transition: all 0.2s; margin-top: 6px;
+        }
+
+        .btn-chat-card:hover { background: var(--primary); color: white; }
+
+
+
+        .chat-input-area input {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            margin: 0;
+        }
+
+        /* Footer */
+        .main-footer {
+            background: transparent;
+            padding: 16px 32px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 700px) {
+            .sidebar { display: none; }
+            .grid-body { padding: 16px; }
+            .top-banner { padding: 24px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-calendar-alt"></i>
+        AgendAi
+    </div>
+
+    <span class="sidebar-section-label">Navegação</span>
+
+    <a href="dashboard.html" class="sidebar-link active">
+        <i class="fas fa-home"></i>
+        Início
+    </a>
+    <a href="meus_agendamentos.html" class="sidebar-link">
+        <i class="fas fa-calendar-check"></i>
+        Meus Agendamentos
+    </a>
+
+    <span class="sidebar-section-label">Categorias</span>
+
+    <!-- Botão: Todos -->
+    <button class="cat-btn active" data-cat="Todos" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#3b82f6;"></span>
+        Todos
+    </button>
+
+    <button class="cat-btn" data-cat="Beleza" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#ec4899;"></span>
+        Beleza
+    </button>
+
+    <button class="cat-btn" data-cat="Saúde" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#10b981;"></span>
+        Saúde
+    </button>
+
+    <button class="cat-btn" data-cat="Serviços" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#f59e0b;"></span>
+        Serviços
+    </button>
+
+    <button class="cat-btn" data-cat="Educação" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#8b5cf6;"></span>
+        Educação
+    </button>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+
+    <a href="index.html" class="sidebar-link danger"
+       onclick="event.preventDefault(); window.location.href='index.html';">
+        <i class="fas fa-sign-out-alt"></i>
+        Sair
+    </a>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main-content">
+
+    <!-- Banner -->
+    <div class="top-banner">
+        <div class="banner-greeting" id="greetingText">Olá! 👋</div>
+        <div class="banner-title">Sua beleza e bem-estar, simplificados.</div>
+        <div class="banner-sub">Encontre os melhores profissionais e agende com facilidade.</div>
+        <div class="banner-search">
+            <div class="banner-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar profissional ou especialidade..."
+                       oninput="filterCards()">
+            </div>
+            <button class="btn-search" onclick="filterCards()">
+                <i class="fas fa-sliders-h"></i> Filtrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid-body">
+        <div class="grid-header">
+            <h2><i class="fas fa-users" style="color:var(--primary);"></i> Profissionais</h2>
+            <span class="result-count" id="resultCount">6 profissionais</span>
+        </div>
+
+        <div class="professional-grid" id="proGrid">
+
+            <div class="pro-card" data-category="Beleza" data-name="Carlos Silva" data-specialty="Barbeiro" style="animation-delay:0s">
+                <div class="pro-card-header">
+                    <div class="pro-avatar-fallback">C</div>
+                    <span class="pro-cat-badge" style="color:#ec4899;">✂️ Beleza</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Carlos Silva</div>
+                        <div class="pro-specialty"><i class="fas fa-cut"></i> Barbeiro</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span>4.8 (127 avaliações)</span>
+                    </div>
+                    <div class="schedule-row">
+                        <input type="date" id="date-1">
+                        <input type="time" id="time-1">
+                    </div>
+                    <button class="btn-agendar" onclick="agendar('Carlos Silva','Barbeiro','date-1','time-1')">
+                        <i class="fas fa-calendar-plus"></i> Agendar
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Carlos Silva','Barbeiro')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+            </div>
+
+            <div class="pro-card" data-category="Beleza" data-name="Ana Oliveira" data-specialty="Manicure" style="animation-delay:0.05s">
+                <div class="pro-card-header">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#ec4899,#be185d);">A</div>
+                    <span class="pro-cat-badge" style="color:#ec4899;">💅 Beleza</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Ana Oliveira</div>
+                        <div class="pro-specialty"><i class="fas fa-hand-sparkles"></i> Manicure</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <span>5.0 (89 avaliações)</span>
+                    </div>
+                    <div class="schedule-row">
+                        <input type="date" id="date-2">
+                        <input type="time" id="time-2">
+                    </div>
+                    <button class="btn-agendar" onclick="agendar('Ana Oliveira','Manicure','date-2','time-2')">
+                        <i class="fas fa-calendar-plus"></i> Agendar
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Ana Oliveira','Manicure')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+            </div>
+
+            <div class="pro-card" data-category="Saúde" data-name="Marcos Souza" data-specialty="Personal Trainer" style="animation-delay:0.1s">
+                <div class="pro-card-header">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#10b981,#059669);">M</div>
+                    <span class="pro-cat-badge" style="color:#10b981;">💪 Saúde</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Marcos Souza</div>
+                        <div class="pro-specialty"><i class="fas fa-dumbbell"></i> Personal Trainer</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                        <span>4.2 (64 avaliações)</span>
+                    </div>
+                    <div class="schedule-row">
+                        <input type="date" id="date-3">
+                        <input type="time" id="time-3">
+                    </div>
+                    <button class="btn-agendar" onclick="agendar('Marcos Souza','Personal Trainer','date-3','time-3')">
+                        <i class="fas fa-calendar-plus"></i> Agendar
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Marcos Souza','Personal Trainer')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+            </div>
+
+            <div class="pro-card" data-category="Serviços" data-name="Roberto Alves" data-specialty="Eletricista" style="animation-delay:0.15s">
+                <div class="pro-card-header">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#f59e0b,#d97706);">R</div>
+                    <span class="pro-cat-badge" style="color:#f59e0b;">🔧 Serviços</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Roberto Alves</div>
+                        <div class="pro-specialty"><i class="fas fa-bolt"></i> Eletricista</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span>4.6 (48 avaliações)</span>
+                    </div>
+                    <div class="schedule-row">
+                        <input type="date" id="date-4">
+                        <input type="time" id="time-4">
+                    </div>
+                    <button class="btn-agendar" onclick="agendar('Roberto Alves','Eletricista','date-4','time-4')">
+                        <i class="fas fa-calendar-plus"></i> Agendar
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Roberto Alves','Eletricista')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+            </div>
+
+            <div class="pro-card" data-category="Educação" data-name="Beatriz Lima" data-specialty="Professora de Inglês" style="animation-delay:0.2s">
+                <div class="pro-card-header">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">B</div>
+                    <span class="pro-cat-badge" style="color:#8b5cf6;">📚 Educação</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Beatriz Lima</div>
+                        <div class="pro-specialty"><i class="fas fa-language"></i> Professora de Inglês</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <span>4.9 (73 avaliações)</span>
+                    </div>
+                    <div class="schedule-row">
+                        <input type="date" id="date-5">
+                        <input type="time" id="time-5">
+                    </div>
+                    <button class="btn-agendar" onclick="agendar('Beatriz Lima','Professora de Inglês','date-5','time-5')">
+                        <i class="fas fa-calendar-plus"></i> Agendar
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Beatriz Lima','Professora de Inglês')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+            </div>
+
+            <div class="pro-card" data-category="Saúde" data-name="Fernanda Costa" data-specialty="Nutricionista" style="animation-delay:0.25s">
+                <div class="pro-card-header">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#06b6d4,#0891b2);">F</div>
+                    <span class="pro-cat-badge" style="color:#10b981;">🥗 Saúde</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Fernanda Costa</div>
+                        <div class="pro-specialty"><i class="fas fa-apple-alt"></i> Nutricionista</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span>4.7 (55 avaliações)</span>
+                    </div>
+                    <div class="schedule-row">
+                        <input type="date" id="date-6">
+                        <input type="time" id="time-6">
+                    </div>
+                    <button class="btn-agendar" onclick="agendar('Fernanda Costa','Nutricionista','date-6','time-6')">
+                        <i class="fas fa-calendar-plus"></i> Agendar
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Fernanda Costa','Nutricionista')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        © 2026 AgendAi — Todos os direitos reservados.
+    </footer>
+</div>
+
+<!-- Modal Sucesso -->
+<div id="successModal" class="modal-overlay">
+    <div class="modal-icon">✅</div>
+    <h2>Agendado com sucesso!</h2>
+    <p id="modalText"></p>
+    <button class="btn-ok" onclick="closeModal()">Perfeito!</button>
+</div>
+
+<!-- Chat Overlay -->
+<div class="chat-overlay" id="chatOverlay" onclick="closeChat()"></div>
+
+<!-- Chat Panel -->
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+        <div class="chat-p-avatar" id="chatAvatar">?</div>
+        <div class="chat-p-info">
+            <strong id="chatProName">Profissional</strong>
+            <span id="chatProSpec">Especialidade</span>
+        </div>
+        <button class="chat-close" onclick="closeChat()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chat-messages-area" id="chatMessages"></div>
+    <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Digite uma mensagem..." onkeypress="handleKey(event)">
+        <button class="chat-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+<script>
+    /* ── Saudação ── */
+    const h = new Date().getHours();
+    document.getElementById('greetingText').textContent =
+        h < 12 ? 'Bom dia! 👋' : h < 18 ? 'Boa tarde! 👋' : 'Boa noite! 👋';
+
+    /* ── Filtro de categoria (sidebar) ── */
+    let activeCategory = 'Todos';
+
+    function filterCategory(btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCategory = btn.dataset.cat;
+        filterCards();
+    }
+
+    /* ── Filtro combinado (categoria + busca) ── */
+    function filterCards() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.pro-card');
+        let visible = 0;
+
+        cards.forEach(card => {
+            const matchCat    = activeCategory === 'Todos' || card.dataset.category === activeCategory;
+            const matchSearch = card.dataset.name.toLowerCase().includes(query) ||
+                                card.dataset.specialty.toLowerCase().includes(query);
+            const show = matchCat && matchSearch;
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        document.getElementById('resultCount').textContent =
+            `${visible} profissional${visible !== 1 ? 'is' : ''}`;
+
+        const grid = document.getElementById('proGrid');
+        const existing = grid.querySelector('.empty-state');
+        if (visible === 0 && !existing) {
+            grid.insertAdjacentHTML('beforeend', `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>Nenhum profissional encontrado</h3>
+                    <p>Tente outra categoria ou termo de busca.</p>
+                </div>`);
+        } else if (visible > 0 && existing) {
+            existing.remove();
+        }
+    }
+
+    /* ── Agendamento ── */
+    const modal     = document.getElementById('successModal');
+    const modalText = document.getElementById('modalText');
+
+    function agendar(nome, especialidade, dateId, timeId) {
+        const data = document.getElementById(dateId).value;
+        const hora = document.getElementById(timeId).value;
+        if (!data || !hora) { alert('Por favor, selecione a data e o horário.'); return; }
+
+        const novoAgendamento = { id: Date.now(), nome, especialidade, foto: '', data, hora, status: 'pending' };
+        const agendamentos = JSON.parse(localStorage.getItem('meus_agendamentos_cliente')) || [];
+        agendamentos.push(novoAgendamento);
+        localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+
+        const [y,m,d] = data.split('-');
+        modalText.innerHTML = `Sua reserva com <strong>${nome}</strong> foi enviada!<br><br>📅 ${d}/${m}/${y} às 🕒 ${hora}`;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() { modal.style.display = 'none'; }
+
+    /* ── CHAT POR PROFISSIONAL ── */
+    let activePro = null;
+
+    function openChat(nome, especialidade) {
+        activePro = nome;
+        document.getElementById('chatProName').textContent = nome;
+        document.getElementById('chatProSpec').textContent = especialidade;
+        document.getElementById('chatAvatar').textContent = nome.charAt(0).toUpperCase();
+        document.getElementById('chatPanel').classList.add('open');
+        document.getElementById('chatOverlay').classList.add('open');
+        loadChatMessages();
+        setTimeout(() => document.getElementById('chatInput').focus(), 300);
+    }
+
+    function closeChat() {
+        document.getElementById('chatPanel').classList.remove('open');
+        document.getElementById('chatOverlay').classList.remove('open');
+        activePro = null;
+    }
+
+    function loadChatMessages() {
+        const area = document.getElementById('chatMessages');
+        const history = JSON.parse(localStorage.getItem(`chat_cli_${activePro}`)) || [];
+
+        if (history.length === 0) {
+            area.innerHTML = `
+                <div class="chat-empty">
+                    <i class="fas fa-comment-dots"></i>
+                    Inicie uma conversa com ${activePro}!
+                </div>`;
+        } else {
+            area.innerHTML = history.map(m => `
+                <div class="msg-bubble ${m.sender === 'Você' ? 'sent' : 'received'}">
+                    ${m.text}
+                    <div class="msg-time">${m.time || ''}</div>
+                </div>`).join('');
+        }
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function sendMsg() {
+        const input = document.getElementById('chatInput');
+        const text  = input.value.trim();
+        if (!text || !activePro) return;
+
+        const now  = new Date();
+        const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const key  = `chat_cli_${activePro}`;
+        const history = JSON.parse(localStorage.getItem(key)) || [];
+        history.push({ sender: 'Você', text, time });
+        localStorage.setItem(key, JSON.stringify(history));
+
+        const area = document.getElementById('chatMessages');
+        const emptyEl = area.querySelector('.chat-empty');
+        if (emptyEl) emptyEl.remove();
+
+        area.insertAdjacentHTML('beforeend', `
+            <div class="msg-bubble sent">
+                ${text}
+                <div class="msg-time">${time}</div>
+            </div>`);
+        area.scrollTop = area.scrollHeight;
+        input.value = '';
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter') sendMsg();
+    }
+</script>
+</body>
+</html>

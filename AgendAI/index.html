@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Bem Vindo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <h2 id="auth-title">Bem-vindo ao AgendAi!</h2>
+        <form onsubmit="handleAuth(event)">
+            <div class="role-selection">
+                <input type="radio" name="user_type" id="cliente" value="cliente" checked>
+                <label for="cliente" class="role-option">Cliente</label>
+
+                <input type="radio" name="user_type" id="empreendedor" value="Empreendedor">
+                <label for="empreendedor" class="role-option">Empreendedor</label>
+            </div>
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" placeholder="exemplo@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" placeholder="Sua senha" required>
+            </div>
+            <!-- Novo campo para confirmação de senha, inicialmente oculto -->
+            <div class="form-group hidden" id="confirm-password-group">
+                <label for="confirm-password">Confirmar Senha</label>
+                <input type="password" id="confirm-password" placeholder="Confirme sua senha">
+            </div>
+            <div class="form-group hidden" id="category-group">
+                <label for="category">Categoria do seu Serviço</label>
+                <select id="category" name="category">
+                    <option value="" disabled selected>Selecione uma categoria</option>
+                    <option value="Beleza">Beleza</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Serviços">Serviços</option>
+                    <option value="Educação">Educação</option>
+                </select>
+            </div>
+            <button type="submit" id="auth-button">Entrar</button>
+            <p class="auth-toggle-text">
+                <a href="#" id="toggle-auth-mode">Não tem conta? Cadastre-se aqui.</a>
+            </p>
+        </form>
+    </div>
+
+    <script>
+        const roleRadios = document.querySelectorAll('input[name="user_type"]');
+        const categoryGroup = document.getElementById('category-group');
+        const authTitle = document.getElementById('auth-title');
+        const authButton = document.getElementById('auth-button');
+        const toggleAuthModeLink = document.getElementById('toggle-auth-mode');
+        const confirmPasswordGroup = document.getElementById('confirm-password-group');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+
+        let isRegisterMode = false; // Flag para controlar o modo (login/cadastro)
+
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                // A categoria só aparece se estiver no modo de cadastro E o perfil for empreendedor
+                if (isRegisterMode && radio.value === 'Empreendedor') {
+                    categoryGroup.classList.remove('hidden');
+                } else {
+                    categoryGroup.classList.add('hidden');
+                }
+            });
+        });
+
+        toggleAuthModeLink.addEventListener('click', (event) => {
+            event.preventDefault(); // Impede o envio padrão do formulário
+            isRegisterMode = !isRegisterMode; // Alterna o modo
+
+            if (isRegisterMode) {
+                authTitle.textContent = 'Crie sua conta no AgendAi!';
+                authButton.textContent = 'Cadastrar';
+                toggleAuthModeLink.textContent = 'Já tem conta? Faça login aqui.';
+                confirmPasswordGroup.classList.remove('hidden');
+                confirmPasswordInput.setAttribute('required', 'required'); // Torna o campo obrigatório
+                // Se empreendedor já estiver selecionado, mostra a categoria
+                if (document.querySelector('input[name="user_type"]:checked').value === 'Empreendedor') {
+                    categoryGroup.classList.remove('hidden');
+                }
+            } else {
+                authTitle.textContent = 'Bem-vindo ao AgendAi!';
+                authButton.textContent = 'Entrar';
+                toggleAuthModeLink.textContent = 'Não tem conta? Cadastre-se aqui.';
+                confirmPasswordGroup.classList.add('hidden');
+                confirmPasswordInput.removeAttribute('required'); // Remove a obrigatoriedade
+                categoryGroup.classList.add('hidden'); // Esconde a categoria no modo login
+            }
+        });
+
+        function handleAuth(event) {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            const email = document.getElementById('email').value;
+            const password = passwordInput.value;
+            const userType = document.querySelector('input[name="user_type"]:checked').value;
+            const category = document.getElementById('category').value;
+
+            if (isRegisterMode) {
+                const confirmPassword = confirmPasswordInput.value;
+                if (password !== confirmPassword) {
+                    alert('As senhas não coincidem!');
+                    return;
+                }
+                if (userType === 'Empreendedor' && !category) {
+                    alert('Por favor, selecione a categoria do seu serviço.');
+                    return;
+                }
+                alert(`Cadastro de ${userType} com e-mail: ${email} e categoria: ${category || 'N/A'} realizado com sucesso!`);
+                // Após o cadastro, redireciona para o dashboard apropriado
+                window.location.href = userType === 'cliente' ? 'dashboard.html' : 'dashboard_empreendedor.html';
+            } else {
+                // Lógica de login (simulada) - Removido o alert
+                document.body.classList.add('fade-out'); // Adiciona a classe de fade-out
+                setTimeout(() => {
+                    window.location.href = userType === 'cliente' ? 'dashboard.html' : 'dashboard_empreendedor.html';
+                }, 500); // Aguarda 500ms (duração da transição) antes de redirecionar
+            }
+        }
+    </script>
+</body>
+
+</html>

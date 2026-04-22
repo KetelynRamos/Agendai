@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Meus Agendamentos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59,130,246,0.15);
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 240px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 18px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--primary);
+            font-size: 21px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            padding: 0 6px;
+        }
+
+        .sidebar-section-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 10px 5px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-link i { width: 17px; text-align: center; font-size: 14px; }
+        .sidebar-link:hover { background: var(--primary-light); color: var(--primary); }
+
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; height: 60%;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: var(--primary);
+        }
+
+        .sidebar-link.danger { color: var(--danger); }
+        .sidebar-link.danger:hover { background: var(--danger-light); }
+
+        .sidebar-spacer { flex: 1; }
+        .sidebar-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+        /* ── MAIN ── */
+        .main-content { flex: 1; overflow-y: auto; }
+
+        /* Page header */
+        .page-header-bar {
+            background: linear-gradient(135deg, #1e3a5f, #2563eb 60%, #60a5fa);
+            padding: 40px 40px 32px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header-bar::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .breadcrumb {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-header-bar h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+        .page-header-bar p  { font-size: 14px; opacity: 0.75; }
+
+        /* Body */
+        .page-body { padding: 28px 36px; }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid transparent;
+        }
+
+        .stat-card.c-total    { border-color: var(--primary); }
+        .stat-card.c-upcoming { border-color: var(--success); }
+        .stat-card.c-cancelled { border-color: var(--danger); }
+
+        .stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+
+        .c-total     .stat-icon { background: var(--primary-light); color: var(--primary); }
+        .c-upcoming  .stat-icon { background: var(--success-light); color: var(--success); }
+        .c-cancelled .stat-icon { background: var(--danger-light);  color: var(--danger);  }
+
+        .stat-info strong { display: block; font-size: 22px; font-weight: 800; }
+        .stat-info span   { font-size: 12px; color: var(--muted); }
+
+        /* Filtros */
+        .filters-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 7px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+        .filter-chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        /* Cards de agendamento */
+        .appointments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .appt-card {
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            border-left: 5px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .appt-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.09); }
+        .appt-card.s-pending   { border-color: var(--warning); }
+        .appt-card.s-confirmed { border-color: var(--success); }
+        .appt-card.s-cancelled { border-color: var(--danger); opacity: 0.65; filter: grayscale(0.3); }
+
+        .appt-avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .appt-info { flex: 1; min-width: 0; }
+
+        .appt-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+
+        .appt-meta {
+            display: flex; gap: 14px; flex-wrap: wrap;
+        }
+
+        .appt-meta span {
+            font-size: 13px; color: var(--muted);
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        .appt-meta i { font-size: 11px; color: var(--primary); }
+
+        .appt-badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .badge-pending   { background: var(--warning-light); color: #92400e; }
+        .badge-confirmed { background: var(--success-light);  color: #065f46; }
+        .badge-cancelled { background: var(--danger-light);   color: #991b1b; }
+
+        .btn-cancel-appt {
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: var(--danger-light);
+            color: #991b1b;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: auto !important;
+        }
+
+        .btn-cancel-appt:hover { background: var(--danger); color: white; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 70px 20px;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state i { font-size: 52px; color: #cbd5e1; display: block; margin-bottom: 14px; }
+        .empty-state h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+        .empty-state p  { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+        .btn-go {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 11px 24px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .btn-go:hover { background: var(--primary-hover); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            padding: 13px 20px;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: var(--success); }
+        .toast.error   { background: var(--danger); }
+
+        @media (max-width: 700px) {
+            .sidebar { display: none; }
+            .page-body { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-calendar-alt"></i>
+        AgendAi
+    </div>
+
+    <span class="sidebar-section-label">Navegação</span>
+
+    <a href="dashboard.html" class="sidebar-link">
+        <i class="fas fa-home"></i>
+        Início
+    </a>
+    <a href="meus_agendamentos.html" class="sidebar-link active">
+        <i class="fas fa-calendar-check"></i>
+        Meus Agendamentos
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+
+    <a href="index.html" class="sidebar-link danger"
+       onclick="event.preventDefault(); window.location.href='index.html';">
+        <i class="fas fa-sign-out-alt"></i>
+        Sair
+    </a>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main-content">
+
+    <div class="page-header-bar">
+        <div class="breadcrumb">
+            <i class="fas fa-home"></i> Início
+            <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+            Meus Agendamentos
+        </div>
+        <h1>Meus Agendamentos</h1>
+        <p>Acompanhe e gerencie os seus agendamentos com profissionais.</p>
+    </div>
+
+    <div class="page-body">
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card c-total">
+                <div class="stat-icon"><i class="fas fa-list"></i></div>
+                <div class="stat-info">
+                    <strong id="statTotal">0</strong>
+                    <span>Total</span>
+                </div>
+            </div>
+            <div class="stat-card c-upcoming">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <strong id="statUpcoming">0</strong>
+                    <span>Próximos</span>
+                </div>
+            </div>
+            <div class="stat-card c-cancelled">
+                <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="stat-info">
+                    <strong id="statCancelled">0</strong>
+                    <span>Cancelados</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-row">
+            <button class="filter-chip active" data-f="todos"     onclick="setFilter(this)">Todos</button>
+            <button class="filter-chip"        data-f="active"    onclick="setFilter(this)">⏳ Ativos</button>
+            <button class="filter-chip"        data-f="cancelled" onclick="setFilter(this)">❌ Cancelados</button>
+        </div>
+
+        <!-- Lista -->
+        <div class="appointments-list" id="apptList"></div>
+
+    </div>
+</main>
+
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMsg"></span>
+</div>
+
+<script>
+    let agendamentos = JSON.parse(localStorage.getItem('meus_agendamentos_cliente')) || [];
+    let currentFilter = 'todos';
+
+    function setFilter(btn) {
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.f;
+        render();
+    }
+
+    function render() {
+        updateStats();
+
+        let list = agendamentos;
+        if (currentFilter === 'active')    list = agendamentos.filter(a => !a.cancelled);
+        if (currentFilter === 'cancelled') list = agendamentos.filter(a => a.cancelled);
+
+        const container = document.getElementById('apptList');
+
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>Nenhum agendamento encontrado</h3>
+                    <p>Você ainda não possui agendamentos${currentFilter === 'cancelled' ? ' cancelados' : ''}.</p>
+                    <a href="dashboard.html" class="btn-go">
+                        <i class="fas fa-search"></i> Encontrar profissionais
+                    </a>
+                </div>`;
+            return;
+        }
+
+        // Ordenar por data+hora mais recente primeiro (próximos primeiro)
+        list = [...list].sort((a, b) => {
+            const da = new Date(`${a.data}T${a.hora || '00:00'}`);
+            const db = new Date(`${b.data}T${b.hora || '00:00'}`);
+            return da - db;
+        });
+
+        container.innerHTML = list.map((ag, idx) => {
+            const initial    = (ag.nome || 'P').charAt(0).toUpperCase();
+            const cancelled  = ag.cancelled;
+            const statusCls  = cancelled ? 's-cancelled' : 's-pending';
+            const badgeCls   = cancelled ? 'badge-cancelled' : 'badge-pending';
+            const badgeTxt   = cancelled ? '❌ Cancelado' : '⏳ Enviado';
+            const [y,m,d]    = (ag.data || '--').split('-');
+            const dataFmt    = ag.data ? `${d}/${m}/${y}` : '—';
+            const realIdx    = agendamentos.indexOf(ag);
+
+            return `
+            <div class="appt-card ${statusCls}" style="animation-delay:${idx*0.05}s">
+                <div class="appt-avatar">${initial}</div>
+                <div class="appt-info">
+                    <h3>${ag.nome || 'Profissional'}</h3>
+                    <div class="appt-meta">
+                        <span><i class="fas fa-tag"></i>${ag.especialidade || 'Serviço'}</span>
+                        <span><i class="fas fa-calendar-day"></i>${dataFmt}</span>
+                        <span><i class="fas fa-clock"></i>${ag.hora || '—'}</span>
+                    </div>
+                </div>
+                <span class="appt-badge ${badgeCls}">${badgeTxt}</span>
+                ${!cancelled ? `
+                <button class="btn-cancel-appt" onclick="cancelar(${realIdx})">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    function updateStats() {
+        document.getElementById('statTotal').textContent     = agendamentos.length;
+        document.getElementById('statUpcoming').textContent  = agendamentos.filter(a => !a.cancelled).length;
+        document.getElementById('statCancelled').textContent = agendamentos.filter(a => a.cancelled).length;
+    }
+
+    function cancelar(index) {
+        if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
+        agendamentos[index].cancelled = true;
+        localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+        render();
+        showToast('Agendamento cancelado.', 'error');
+    }
+
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.className = `toast ${type} show`;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    render();
+</script>
+</body>
+</html>

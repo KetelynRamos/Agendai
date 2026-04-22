@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Encontre Profissionais</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59,130,246,0.15);
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 240px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 18px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--primary);
+            font-size: 21px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            padding: 0 6px;
+        }
+
+        .sidebar-section-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 10px 5px;
+        }
+
+        /* Links simples */
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-link i { width: 17px; text-align: center; font-size: 14px; }
+
+        .sidebar-link:hover { background: var(--primary-light); color: var(--primary); }
+
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; height: 60%;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: var(--primary);
+        }
+
+        .sidebar-link.danger { color: var(--danger); }
+        .sidebar-link.danger:hover { background: var(--danger-light); }
+
+        /* Seção de categorias expansível */
+        .cat-toggle {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            font-family: inherit;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .cat-toggle i.icon { width: 17px; text-align: center; font-size: 14px; }
+        .cat-toggle .arrow { margin-left: auto; font-size: 11px; transition: transform 0.25s; }
+        .cat-toggle.open .arrow { transform: rotate(180deg); }
+        .cat-toggle:hover { background: var(--primary-light); color: var(--primary); }
+
+        .cat-list {
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            padding-left: 28px;
+            margin-bottom: 4px;
+        }
+
+        .cat-list.show { display: flex; }
+
+        .cat-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cat-btn:hover { background: var(--primary-light); color: var(--primary); }
+
+        .cat-btn.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .cat-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .sidebar-spacer { flex: 1; }
+        .sidebar-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+        /* ── MAIN ── */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── BANNER ── */
+        .top-banner {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #60a5fa 100%);
+            padding: 44px 40px 36px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .top-banner::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 240px; height: 240px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .top-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -70px; right: 200px;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .banner-greeting {
+            font-size: 13px;
+            opacity: 0.75;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .banner-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .banner-sub {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 22px;
+        }
+
+        /* Barra de busca no banner */
+        .banner-search {
+            display: flex;
+            gap: 10px;
+            max-width: 520px;
+        }
+
+        .banner-search-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .banner-search-wrap i {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .banner-search input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .btn-search {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.18);
+            border: 1.5px solid rgba(255,255,255,0.35);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+            width: auto !important;
+        }
+
+        .btn-search:hover { background: rgba(255,255,255,0.28); }
+
+        /* ── GRID BODY ── */
+        .grid-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 32px 32px;
+        }
+
+        .grid-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .grid-header h2 {
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-count {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* ── PRO CARDS ── */
+        .professional-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .pro-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.22s, box-shadow 0.22s;
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .pro-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.11);
+        }
+
+        /* Foto / header do card */
+        .pro-card-header {
+            height: 130px;
+            position: relative;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .pro-card-header img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        .pro-avatar-fallback {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            font-size: 26px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pro-cat-badge {
+            position: absolute;
+            top: 10px; right: 10px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Body do card */
+        .pro-body {
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .pro-name { font-size: 16px; font-weight: 700; }
+
+        .pro-specialty {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pro-specialty i { color: var(--primary); font-size: 11px; }
+
+        .pro-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .pro-rating span { color: var(--muted); font-weight: 400; }
+
+        /* Inputs de data/hora */
+        .schedule-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .schedule-row input {
+            padding: 8px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin: 0;
+            background: var(--bg);
+        }
+
+        .schedule-row input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .btn-agendar {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.22s;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .btn-agendar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(59,130,246,0.4);
+        }
+
+        /* Empty state */
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 70px 20px;
+        }
+
+        .empty-state i { font-size: 50px; color: #cbd5e1; display: block; margin-bottom: 14px; }
+        .empty-state h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+        .empty-state p { font-size: 14px; color: var(--muted); }
+
+        /* ── MODAL SUCESSO ── */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(16,185,129,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .modal-icon {
+            font-size: 72px;
+            margin-bottom: 18px;
+            animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-overlay h2 { font-size: 30px; font-weight: 800; margin-bottom: 10px; }
+        .modal-overlay p  { font-size: 17px; line-height: 1.6; margin-bottom: 28px; opacity: 0.9; }
+
+        .btn-ok {
+            background: white;
+            color: var(--success);
+            border: none;
+            padding: 12px 48px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s;
+            width: auto !important;
+        }
+
+        .btn-ok:hover { transform: scale(1.04); }
+
+        /* ── MODAL DE PERFIL ── */
+        .profile-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.6);
+            z-index: 1100;
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .profile-overlay.open { display: flex; }
+
+        .profile-modal {
+            background: var(--white);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 660px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+            animation: modalIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.92) translateY(20px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .profile-modal-header {
+            background: linear-gradient(135deg, #1e3a5f, #2563eb 60%, #60a5fa);
+            padding: 28px 28px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-modal-header::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .profile-modal-close {
+            position: absolute;
+            top: 16px; right: 16px;
+            background: rgba(255,255,255,0.15);
+            border: none; color: white;
+            width: 34px !important; height: 34px;
+            border-radius: 50%; cursor: pointer;
+            font-size: 16px;
+            display: flex !important; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .profile-modal-close:hover { background: rgba(255,255,255,0.3); }
+
+        .profile-modal-body {
+            padding: 0 28px 28px;
+            margin-top: -44px;
+            position: relative;
+        }
+
+        .profile-avatar-lg {
+            width: 88px; height: 88px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 34px; font-weight: 800; color: white;
+            margin-bottom: 14px;
+        }
+
+        .profile-name { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+
+        .profile-spec {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 14px; color: var(--muted); margin-bottom: 12px;
+        }
+
+        .profile-spec i { color: var(--primary); font-size: 12px; }
+
+        .profile-meta {
+            display: flex; gap: 20px; margin-bottom: 22px; flex-wrap: wrap;
+        }
+
+        .profile-meta-item {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; color: var(--muted);
+        }
+
+        .profile-meta-item i { color: var(--primary); font-size: 12px; }
+        .profile-meta-item strong { color: var(--text); font-weight: 700; }
+
+        .profile-bio {
+            font-size: 14px; color: var(--muted);
+            line-height: 1.6; margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-section-title {
+            font-size: 15px; font-weight: 700;
+            margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .profile-section-title i { color: var(--primary); }
+
+        /* Grid de portfólio */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .portfolio-item {
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .portfolio-item:hover { transform: scale(1.03); }
+
+        .portfolio-item:hover .portfolio-overlay-hover { opacity: 1; }
+
+        .portfolio-item img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+
+        .portfolio-overlay-hover {
+            position: absolute; inset: 0;
+            background: rgba(59,130,246,0.5);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 22px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border-radius: 12px;
+        }
+
+        /* Avaliações */
+        .reviews-list {
+            display: flex; flex-direction: column; gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .review-item {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .review-header {
+            display: flex; align-items: center;
+            gap: 10px; margin-bottom: 6px;
+        }
+
+        .review-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white; font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .review-author { font-size: 13px; font-weight: 700; }
+        .review-stars  { color: #f59e0b; font-size: 11px; margin-left: auto; }
+        .review-text   { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+        /* Botões do modal */
+        .profile-modal-actions {
+            display: flex; gap: 10px; padding-top: 4px;
+        }
+
+        .btn-profile-agendar {
+            flex: 1; padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+
+        .btn-profile-agendar:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(59,130,246,0.4); }
+
+        .btn-profile-chat {
+            padding: 12px 18px;
+            background: var(--primary-light); color: var(--primary);
+            border: 1.5px solid rgba(59,130,246,0.25);
+            border-radius: 10px; font-size: 14px; font-weight: 700;
+            font-family: 'Inter', sans-serif; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+            transition: all 0.2s; width: auto !important;
+        }
+
+        .btn-profile-chat:hover { background: var(--primary); color: white; }
+
+        /* Card header clicável */
+        .pro-card-header {
+            cursor: pointer;
+        }
+
+        .pro-card-header:hover .pro-avatar-fallback {
+            transform: scale(1.08);
+            transition: transform 0.2s;
+        }
+
+        .view-profile-hint {
+            position: absolute;
+            bottom: 8px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.55);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 50px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .pro-card-header:hover .view-profile-hint { opacity: 1; }
+
+        /* ── CHAT PANEL (modal lateral) ── */
+        .chat-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 800;
+            backdrop-filter: blur(2px);
+        }
+
+        .chat-overlay.open { display: block; }
+
+        .chat-panel {
+            position: fixed;
+            top: 0; right: -380px;
+            width: 360px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .chat-panel.open { right: 0; }
+
+        .chat-panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .chat-p-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 800;
+        }
+
+        .chat-p-info { flex: 1; }
+        .chat-p-info strong { display: block; font-size: 15px; font-weight: 700; }
+        .chat-p-info span { font-size: 12px; opacity: 0.8; }
+
+        .chat-close {
+            background: rgba(255,255,255,0.15); border: none;
+            color: white; width: 32px !important; height: 32px;
+            border-radius: 8px; cursor: pointer; font-size: 16px;
+            display: flex !important; align-items: center; justify-content: center;
+            transition: background 0.2s; padding: 0;
+        }
+
+        .chat-close:hover { background: rgba(255,255,255,0.3); }
+
+        .chat-messages-area {
+            flex: 1; padding: 16px;
+            overflow-y: auto; background: #f8fafc;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .chat-empty {
+            text-align: center; margin-top: 40px;
+            color: var(--muted); font-size: 13px;
+        }
+
+        .chat-empty i { font-size: 36px; color: #cbd5e1; display: block; margin-bottom: 10px; }
+
+        .msg-bubble {
+            max-width: 80%; padding: 10px 13px;
+            border-radius: 14px; font-size: 13px; line-height: 1.5;
+        }
+
+        .msg-bubble.sent {
+            background: var(--primary); color: white;
+            align-self: flex-end; border-bottom-right-radius: 4px;
+        }
+
+        .msg-bubble.received {
+            background: white; color: var(--text);
+            align-self: flex-start; border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .msg-time {
+            font-size: 10px; opacity: 0.6; margin-top: 3px; text-align: right;
+        }
+
+        .chat-input-row {
+            padding: 14px; border-top: 1px solid var(--border);
+            display: flex; gap: 8px; flex-shrink: 0;
+        }
+
+        .chat-input-row input {
+            flex: 1; padding: 10px 14px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 13px; font-family: 'Inter', sans-serif;
+            outline: none; transition: border-color 0.2s; margin: 0;
+        }
+
+        .chat-input-row input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .chat-send {
+            width: 40px !important; height: 40px;
+            border-radius: 10px; background: var(--primary); color: white;
+            border: none; cursor: pointer; font-size: 15px;
+            display: flex !important; align-items: center; justify-content: center;
+            padding: 0; transition: background 0.2s;
+        }
+
+        .chat-send:hover { background: var(--primary-hover); }
+
+        /* Botão chat no card */
+        .btn-chat-card {
+            width: 100%; padding: 9px;
+            background: var(--primary-light); color: var(--primary);
+            border: 1.5px solid rgba(59,130,246,0.25);
+            border-radius: 10px; font-size: 13px; font-weight: 600;
+            font-family: 'Inter', sans-serif; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; transition: all 0.2s; margin-top: 6px;
+        }
+
+        .btn-chat-card:hover { background: var(--primary); color: white; }
+
+
+
+        .chat-input-area input {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            margin: 0;
+        }
+
+        /* ── AVAILABILITY PANEL (Expansion) ── */
+        .availability-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+        }
+
+        .availability-panel.open {
+            max-height: 1000px; /* Suficiente para a grade */
+            padding-bottom: 20px;
+        }
+
+        .weekly-grid-container {
+            padding: 20px;
+        }
+
+        .weekly-grid-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .weekly-grid-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .weekly-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .day-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .day-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed var(--border);
+            text-align: center;
+        }
+
+        .slot-pill {
+            padding: 8px;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .slot-pill:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .slot-pill.taken {
+            opacity: 0.4;
+            background: var(--bg);
+            cursor: not-allowed;
+            pointer-events: none;
+            text-decoration: line-through;
+        }
+
+        .no-availability-msg {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .btn-ver-disponibilidade {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1.5px solid rgba(59,130,246,0.2);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-ver-disponibilidade:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-ver-disponibilidade.active {
+            background: var(--text);
+            color: white;
+            border-color: var(--text);
+        }
+
+        /* Footer */
+        .main-footer {
+            background: transparent;
+            padding: 16px 32px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 700px) {
+            .sidebar { display: none; }
+            .grid-body { padding: 16px; }
+            .top-banner { padding: 24px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-calendar-alt"></i>
+        AgendAi
+    </div>
+
+    <span class="sidebar-section-label">Navegação</span>
+
+    <a href="dashboard.html" class="sidebar-link active">
+        <i class="fas fa-home"></i>
+        Início
+    </a>
+    <a href="meus_agendamentos.html" class="sidebar-link">
+        <i class="fas fa-calendar-check"></i>
+        Meus Agendamentos
+    </a>
+
+    <span class="sidebar-section-label">Categorias</span>
+
+    <!-- Botão: Todos -->
+    <button class="cat-btn active" data-cat="Todos" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#3b82f6;"></span>
+        Todos
+    </button>
+
+    <button class="cat-btn" data-cat="Beleza" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#ec4899;"></span>
+        Beleza
+    </button>
+
+    <button class="cat-btn" data-cat="Saúde" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#10b981;"></span>
+        Saúde
+    </button>
+
+    <button class="cat-btn" data-cat="Serviços" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#f59e0b;"></span>
+        Serviços
+    </button>
+
+    <button class="cat-btn" data-cat="Educação" onclick="filterCategory(this)">
+        <span class="cat-dot" style="background:#8b5cf6;"></span>
+        Educação
+    </button>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+
+    <a href="index.html" class="sidebar-link danger"
+       onclick="event.preventDefault(); window.location.href='index.html';">
+        <i class="fas fa-sign-out-alt"></i>
+        Sair
+    </a>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main-content">
+
+    <!-- Banner -->
+    <div class="top-banner">
+        <div class="banner-greeting" id="greetingText">Olá! 👋</div>
+        <div class="banner-title">Sua beleza e bem-estar, simplificados.</div>
+        <div class="banner-sub">Encontre os melhores profissionais e agende com facilidade.</div>
+        <div class="banner-search">
+            <div class="banner-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar profissional ou especialidade..."
+                       oninput="filterCards()">
+            </div>
+            <button class="btn-search" onclick="filterCards()">
+                <i class="fas fa-sliders-h"></i> Filtrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid-body">
+        <div class="grid-header">
+            <h2><i class="fas fa-users" style="color:var(--primary);"></i> Profissionais</h2>
+            <span class="result-count" id="resultCount">6 profissionais</span>
+        </div>
+
+        <div class="professional-grid" id="proGrid">
+
+            <div class="pro-card" data-category="Beleza" data-name="Carlos Silva" data-specialty="Barbeiro" style="animation-delay:0s">
+                <div class="pro-card-header" onclick="openProfile('carlos')">
+                    <div class="pro-avatar-fallback">C</div>
+                    <span class="pro-cat-badge" style="color:#ec4899;">✂️ Beleza</span>
+                    <span class="view-profile-hint">Ver perfil</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Carlos Silva</div>
+                        <div class="pro-specialty"><i class="fas fa-cut"></i> Barbeiro</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span>4.8 (127 avaliações)</span>
+                    </div>
+                    <button class="btn-ver-disponibilidade" onclick="toggleAvailabilityGrid(this, 'Carlos Silva', 'Barbeiro')">
+                        <i class="fas fa-calendar-alt"></i> Ver Dias e Horários
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Carlos Silva','Barbeiro')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+                <div class="availability-panel">
+                    <!-- Conteúdo será injetado pelo JS -->
+                </div>
+            </div>
+
+
+            <div class="pro-card" data-category="Beleza" data-name="Ana Oliveira" data-specialty="Manicure" style="animation-delay:0.05s">
+                <div class="pro-card-header" onclick="openProfile('ana')">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#ec4899,#be185d);">A</div>
+                    <span class="pro-cat-badge" style="color:#ec4899;">💅 Beleza</span>
+                    <span class="view-profile-hint">Ver perfil</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Ana Oliveira</div>
+                        <div class="pro-specialty"><i class="fas fa-hand-sparkles"></i> Manicure</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <span>5.0 (89 avaliações)</span>
+                    </div>
+                    <button class="btn-ver-disponibilidade" onclick="toggleAvailabilityGrid(this, 'Ana Oliveira', 'Manicure')">
+                        <i class="fas fa-calendar-alt"></i> Ver Dias e Horários
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Ana Oliveira','Manicure')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+                <div class="availability-panel">
+                    <!-- Conteúdo será injetado pelo JS -->
+                </div>
+            </div>
+
+
+            <div class="pro-card" data-category="Saúde" data-name="Marcos Souza" data-specialty="Personal Trainer" style="animation-delay:0.1s">
+                <div class="pro-card-header" onclick="openProfile('marcos')">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#10b981,#059669);">M</div>
+                    <span class="pro-cat-badge" style="color:#10b981;">💪 Saúde</span>
+                    <span class="view-profile-hint">Ver perfil</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Marcos Souza</div>
+                        <div class="pro-specialty"><i class="fas fa-dumbbell"></i> Personal Trainer</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                        <span>4.2 (64 avaliações)</span>
+                    </div>
+                    <button class="btn-ver-disponibilidade" onclick="toggleAvailabilityGrid(this, 'Marcos Souza', 'Personal Trainer')">
+                        <i class="fas fa-calendar-alt"></i> Ver Dias e Horários
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Marcos Souza','Personal Trainer')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+                <div class="availability-panel">
+                    <!-- Conteúdo será injetado pelo JS -->
+                </div>
+            </div>
+
+
+            <div class="pro-card" data-category="Serviços" data-name="Roberto Alves" data-specialty="Eletricista" style="animation-delay:0.15s">
+                <div class="pro-card-header" onclick="openProfile('roberto')">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#f59e0b,#d97706);">R</div>
+                    <span class="pro-cat-badge" style="color:#f59e0b;">🔧 Serviços</span>
+                    <span class="view-profile-hint">Ver perfil</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Roberto Alves</div>
+                        <div class="pro-specialty"><i class="fas fa-bolt"></i> Eletricista</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span>4.6 (48 avaliações)</span>
+                    </div>
+                    <button class="btn-ver-disponibilidade" onclick="toggleAvailabilityGrid(this, 'Roberto Alves', 'Eletricista')">
+                        <i class="fas fa-calendar-alt"></i> Ver Dias e Horários
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Roberto Alves','Eletricista')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+                <div class="availability-panel">
+                    <!-- Conteúdo será injetado pelo JS -->
+                </div>
+            </div>
+
+
+            <div class="pro-card" data-category="Educação" data-name="Beatriz Lima" data-specialty="Professora de Inglês" style="animation-delay:0.2s">
+                <div class="pro-card-header" onclick="openProfile('beatriz')">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">B</div>
+                    <span class="pro-cat-badge" style="color:#8b5cf6;">📚 Educação</span>
+                    <span class="view-profile-hint">Ver perfil</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Beatriz Lima</div>
+                        <div class="pro-specialty"><i class="fas fa-language"></i> Professora de Inglês</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <span>4.9 (73 avaliações)</span>
+                    </div>
+                    <button class="btn-ver-disponibilidade" onclick="toggleAvailabilityGrid(this, 'Beatriz Lima', 'Professora de Inglês')">
+                        <i class="fas fa-calendar-alt"></i> Ver Dias e Horários
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Beatriz Lima','Professora de Inglês')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+                <div class="availability-panel">
+                    <!-- Conteúdo será injetado pelo JS -->
+                </div>
+            </div>
+
+
+            <div class="pro-card" data-category="Saúde" data-name="Fernanda Costa" data-specialty="Nutricionista" style="animation-delay:0.25s">
+                <div class="pro-card-header" onclick="openProfile('fernanda')">
+                    <div class="pro-avatar-fallback" style="background:linear-gradient(135deg,#06b6d4,#0891b2);">F</div>
+                    <span class="pro-cat-badge" style="color:#10b981;">🥗 Saúde</span>
+                    <span class="view-profile-hint">Ver perfil</span>
+                </div>
+                <div class="pro-body">
+                    <div>
+                        <div class="pro-name">Fernanda Costa</div>
+                        <div class="pro-specialty"><i class="fas fa-apple-alt"></i> Nutricionista</div>
+                    </div>
+                    <div class="pro-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        <span>4.7 (55 avaliações)</span>
+                    </div>
+                    <button class="btn-ver-disponibilidade" onclick="toggleAvailabilityGrid(this, 'Fernanda Costa', 'Nutricionista')">
+                        <i class="fas fa-calendar-alt"></i> Ver Dias e Horários
+                    </button>
+                    <button class="btn-chat-card" onclick="openChat('Fernanda Costa','Nutricionista')">
+                        <i class="fas fa-comment-dots"></i> Chat com profissional
+                    </button>
+                </div>
+                <div class="availability-panel">
+                    <!-- Conteúdo será injetado pelo JS -->
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        © 2026 AgendAi — Todos os direitos reservados.
+    </footer>
+</div>
+
+<!-- Modal Sucesso -->
+<div id="successModal" class="modal-overlay">
+    <div class="modal-icon">✅</div>
+    <h2>Agendado com sucesso!</h2>
+    <p id="modalText"></p>
+    <button class="btn-ok" onclick="closeModal()">Perfeito!</button>
+</div>
+
+<!-- ── MODAL DE PERFIL ── -->
+<div class="profile-overlay" id="profileOverlay" onclick="closeProfileOutside(event)">
+    <div class="profile-modal" id="profileModal">
+        <div class="profile-modal-header" id="profileHeader">
+            <button class="profile-modal-close" onclick="closeProfile()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="profile-modal-body">
+            <div class="profile-avatar-lg" id="profileAvatar">?</div>
+            <div class="profile-name" id="profileName">Nome</div>
+            <div class="profile-spec">
+                <i class="fas fa-tag"></i>
+                <span id="profileSpec">Especialidade</span>
+            </div>
+            <div class="profile-meta">
+                <div class="profile-meta-item"><i class="fas fa-star" style="color:#f59e0b;"></i><strong id="profileRating">5.0</strong><span id="profileReviews"> avaliações</span></div>
+                <div class="profile-meta-item"><i class="fas fa-map-marker-alt"></i><span id="profileLocation">São Paulo, SP</span></div>
+                <div class="profile-meta-item"><i class="fas fa-calendar-alt"></i><span id="profileExp">5 anos de experiência</span></div>
+            </div>
+            <p class="profile-bio" id="profileBio">Bio do profissional.</p>
+
+            <div class="profile-section-title">
+                <i class="fas fa-images"></i> Portfólio de Trabalhos
+            </div>
+            <div class="portfolio-grid" id="portfolioGrid"></div>
+
+            <div class="profile-section-title">
+                <i class="fas fa-comment-dots"></i> Avaliações Recentes
+            </div>
+            <div class="reviews-list" id="reviewsList"></div>
+
+            <div class="profile-modal-actions">
+                <button class="btn-profile-agendar" id="profileBtnAgendar">
+                    <i class="fas fa-calendar-plus"></i> Agendar Horário
+                </button>
+                <button class="btn-profile-chat" id="profileBtnChat">
+                    <i class="fas fa-comment"></i> Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat Overlay -->
+<div class="chat-overlay" id="chatOverlay" onclick="closeChat()"></div>
+
+<!-- Chat Panel -->
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+        <div class="chat-p-avatar" id="chatAvatar">?</div>
+        <div class="chat-p-info">
+            <strong id="chatProName">Profissional</strong>
+            <span id="chatProSpec">Especialidade</span>
+        </div>
+        <button class="chat-close" onclick="closeChat()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chat-messages-area" id="chatMessages"></div>
+    <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Digite uma mensagem..." onkeypress="handleKey(event)">
+        <button class="chat-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<!-- ── MODAL DE DISPONIBILIDADE ── -->
+<div class="availability-overlay" id="availabilityOverlay" onclick="fecharModalDisponibilidadeExterno(event)">
+    <div class="availability-modal">
+        <div class="availability-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-clock"></i>
+                <div>
+                    <strong style="display:block; font-size:15px;" id="availProName">Profissional</strong>
+                    <span style="font-size:12px; opacity:0.8;" id="availProSpec">Especialidade</span>
+                </div>
+            </div>
+            <button class="chat-close" onclick="fecharModalDisponibilidade()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="availability-body">
+            <div class="date-selector" id="dateSelector">
+                <!-- Datas geradas via JS -->
+            </div>
+            <div class="slots-grid" id="slotsGrid">
+                <!-- Horários gerados via JS -->
+            </div>
+            <button class="modal-footer-btn btn-confirm-slot" id="btnConfirmarAgendamento" disabled onclick="confirmarAgendamento()">
+                Confirmar Agendamento
+            </button>
+        </div>
+    </div>
+</div>
+
+    <script src="disponibilidade.js"></script>
+<script>
+
+    /* ─── DADOS DOS PROFISSIONAIS ─────────────────────────── */
+    const profiles = {
+        carlos: {
+            nome: 'Carlos Silva', spec: 'Barbeiro', gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+            inicial: 'C', rating: '4.8', reviews: '127', location: 'Pinheiros, SP', exp: '8 anos de experiência',
+            bio: 'Especialista em cortes modernos, barba e degradê. Trabalha com as melhores técnicas do mercado para garantir um resultado impecável e personalizado para cada cliente.',
+            portfolio: [
+                'https://picsum.photos/seed/barber1/300/300',
+                'https://picsum.photos/seed/barber2/300/300',
+                'https://picsum.photos/seed/barber3/300/300',
+                'https://picsum.photos/seed/barber4/300/300',
+                'https://picsum.photos/seed/barber5/300/300',
+                'https://picsum.photos/seed/barber6/300/300',
+            ],
+            avaliacao: [
+                { autor: 'João M.', stars: 5, texto: 'Melhor barbeiro que já fui! Degradê perfeito e atendimento excelente.' },
+                { autor: 'Pedro A.', stars: 5, texto: 'Sempre saio satisfeito. Super recomendo!' },
+                { autor: 'Lucas R.', stars: 4, texto: 'Ótimo profissional, pontual e cuidadoso.' },
+            ]
+        },
+        ana: {
+            nome: 'Ana Oliveira', spec: 'Manicure & Pedicure', gradient: 'linear-gradient(135deg,#ec4899,#be185d)',
+            inicial: 'A', rating: '5.0', reviews: '89', location: 'Vila Madalena, SP', exp: '6 anos de experiência',
+            bio: 'Especialista em nail art, gel, fibra de vidro e decoração artística. Transformo as suas unhas em obras de arte com acabamento premium e longa duração.',
+            portfolio: [
+                'https://picsum.photos/seed/nail1/300/300',
+                'https://picsum.photos/seed/nail2/300/300',
+                'https://picsum.photos/seed/nail3/300/300',
+                'https://picsum.photos/seed/nail4/300/300',
+                'https://picsum.photos/seed/nail5/300/300',
+                'https://picsum.photos/seed/nail6/300/300',
+            ],
+            avaliacao: [
+                { autor: 'Mariana L.', stars: 5, texto: 'Perfeita! As unhas ficaram lindas e duraram mais de 3 semanas.' },
+                { autor: 'Camila F.', stars: 5, texto: 'Atendimento incrível, muito caprichosa nos detalhes.' },
+            ]
+        },
+        marcos: {
+            nome: 'Marcos Souza', spec: 'Personal Trainer', gradient: 'linear-gradient(135deg,#10b981,#059669)',
+            inicial: 'M', rating: '4.2', reviews: '64', location: 'Moema, SP', exp: '10 anos de experiência',
+            bio: 'Personal Trainer certificado pelo CREF. Especializado em hipertrofia, emagrecimento e condicionamento físico. Monto treinos personalizados para o seu objetivo.',
+            portfolio: [
+                'https://picsum.photos/seed/gym1/300/300',
+                'https://picsum.photos/seed/gym2/300/300',
+                'https://picsum.photos/seed/gym3/300/300',
+                'https://picsum.photos/seed/gym4/300/300',
+                'https://picsum.photos/seed/gym5/300/300',
+                'https://picsum.photos/seed/gym6/300/300',
+            ],
+            avaliacao: [
+                { autor: 'Felipe G.', stars: 5, texto: 'Em 3 meses de treino já percebi resultados incríveis!' },
+                { autor: 'Rafael T.', stars: 4, texto: 'Muito técnico e motivador. Recomendo.' },
+            ]
+        },
+        roberto: {
+            nome: 'Roberto Alves', spec: 'Eletricista', gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',
+            inicial: 'R', rating: '4.6', reviews: '48', location: 'Itaim Bibi, SP', exp: '12 anos de experiência',
+            bio: 'Eletricista residencial e comercial com larga experiência. Especializado em instalações, manutenção preventiva e corretiva, laudos e certificações NR-10.',
+            portfolio: [
+                'https://picsum.photos/seed/elec1/300/300',
+                'https://picsum.photos/seed/elec2/300/300',
+                'https://picsum.photos/seed/elec3/300/300',
+                'https://picsum.photos/seed/elec4/300/300',
+            ],
+            avaliacao: [
+                { autor: 'Sandra V.', stars: 5, texto: 'Resolveu o problema rapidamente e com muita organização.' },
+                { autor: 'Carlos B.', stars: 4, texto: 'Bom profissional, explica tudo que vai fazer.' },
+            ]
+        },
+        beatriz: {
+            nome: 'Beatriz Lima', spec: 'Professora de Inglês', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',
+            inicial: 'B', rating: '4.9', reviews: '73', location: 'Online / Jardins, SP', exp: '7 anos de experiência',
+            bio: 'Professora certificada com MBA em Ensino de Inglês. Aulas presenciais e online para todos os níveis — do básico ao avançado. Metodologia dinâmica e foco em conversação.',
+            portfolio: [
+                'https://picsum.photos/seed/english1/300/300',
+                'https://picsum.photos/seed/english2/300/300',
+                'https://picsum.photos/seed/english3/300/300',
+                'https://picsum.photos/seed/english4/300/300',
+            ],
+            avaliacao: [
+                { autor: 'André K.', stars: 5, texto: 'Em 6 meses já consigo me comunicar bem em inglês. Aulas ótimas!' },
+                { autor: 'Letícia M.', stars: 5, texto: 'Didática excelente, sempre pontual e muito dedicada.' },
+            ]
+        },
+        fernanda: {
+            nome: 'Fernanda Costa', spec: 'Nutricionista', gradient: 'linear-gradient(135deg,#06b6d4,#0891b2)',
+            inicial: 'F', rating: '4.7', reviews: '55', location: 'Consolação, SP', exp: '9 anos de experiência',
+            bio: 'Nutricionista clínica e esportiva. Especializada em reeducação alimentar, controle de peso e nutrição para atletas. Atendimento presencial e por teleconsulta.',
+            portfolio: [
+                'https://picsum.photos/seed/nutri1/300/300',
+                'https://picsum.photos/seed/nutri2/300/300',
+                'https://picsum.photos/seed/nutri3/300/300',
+                'https://picsum.photos/seed/nutri4/300/300',
+                'https://picsum.photos/seed/nutri5/300/300',
+                'https://picsum.photos/seed/nutri6/300/300',
+            ],
+            avaliacao: [
+                { autor: 'Vanessa P.', stars: 5, texto: 'Perdi 8kg em 3 meses com saúde! Cardápios deliciosos.' },
+                { autor: 'Bruno L.', stars: 5, texto: 'Super atenciosa, explica tudo com detalhes. Highly recommended!' },
+            ]
+        },
+    };
+
+    /* ─── ABRIR PERFIL ───────────────────────────────────── */
+    function openProfile(id) {
+        const p = profiles[id];
+        if (!p) return;
+
+        // Header
+        document.getElementById('profileHeader').style.background = p.gradient;
+
+        // Avatar
+        const av = document.getElementById('profileAvatar');
+        av.textContent = p.inicial;
+        av.style.background = p.gradient;
+
+        // Info
+        document.getElementById('profileName').textContent     = p.nome;
+        document.getElementById('profileSpec').textContent     = p.spec;
+        document.getElementById('profileRating').textContent   = p.rating;
+        document.getElementById('profileReviews').textContent  = ` (${p.reviews} avaliações)`;
+        document.getElementById('profileLocation').textContent = p.location;
+        document.getElementById('profileExp').textContent      = p.exp;
+        document.getElementById('profileBio').textContent      = p.bio;
+
+        // Portfólio
+        document.getElementById('portfolioGrid').innerHTML = p.portfolio.map(src => `
+            <div class="portfolio-item">
+                <img src="${src}" alt="Trabalho" loading="lazy">
+                <div class="portfolio-overlay-hover"><i class="fas fa-search-plus"></i></div>
+            </div>`).join('');
+
+        // Avaliações
+        document.getElementById('reviewsList').innerHTML = p.avaliacao.map(r => `
+            <div class="review-item">
+                <div class="review-header">
+                    <div class="review-avatar">${r.autor.charAt(0)}</div>
+                    <span class="review-author">${r.autor}</span>
+                    <span class="review-stars">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</span>
+                </div>
+                <div class="review-text">${r.texto}</div>
+            </div>`).join('');
+
+        // Botões de ação do modal
+        document.getElementById('profileBtnChat').onclick = () => {
+            closeProfile();
+            openChat(p.nome, p.spec);
+        };
+        document.getElementById('profileBtnAgendar').onclick = () => {
+            closeProfile();
+            // Rolar até o card e selecionar
+            const card = [...document.querySelectorAll('.pro-card')]
+                .find(c => c.dataset.name === p.nome);
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        document.getElementById('profileOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeProfile() {
+        document.getElementById('profileOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function closeProfileOutside(e) {
+        if (e.target === document.getElementById('profileOverlay')) closeProfile();
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeProfile();
+    });
+    /* ── Saudação ── */
+    const h = new Date().getHours();
+    document.getElementById('greetingText').textContent =
+        h < 12 ? 'Bom dia! 👋' : h < 18 ? 'Boa tarde! 👋' : 'Boa noite! 👋';
+
+    /* ── Filtro de categoria (sidebar) ── */
+    let activeCategory = 'Todos';
+
+    function filterCategory(btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCategory = btn.dataset.cat;
+        filterCards();
+    }
+
+    /* ── Filtro combinado (categoria + busca) ── */
+    function filterCards() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.pro-card');
+        let visible = 0;
+
+        cards.forEach(card => {
+            const matchCat    = activeCategory === 'Todos' || card.dataset.category === activeCategory;
+            const matchSearch = card.dataset.name.toLowerCase().includes(query) ||
+                                card.dataset.specialty.toLowerCase().includes(query);
+            const show = matchCat && matchSearch;
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        document.getElementById('resultCount').textContent =
+            `${visible} profissional${visible !== 1 ? 'is' : ''}`;
+
+        const grid = document.getElementById('proGrid');
+        const existing = grid.querySelector('.empty-state');
+        if (visible === 0 && !existing) {
+            grid.insertAdjacentHTML('beforeend', `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>Nenhum profissional encontrado</h3>
+                    <p>Tente outra categoria ou termo de busca.</p>
+                </div>`);
+        } else if (visible > 0 && existing) {
+            existing.remove();
+        }
+    }
+
+    /* ── Agendamento ── */
+    const modal     = document.getElementById('successModal');
+    const modalText = document.getElementById('modalText');
+
+    function agendar(nome, especialidade, dateId, timeId) {
+        const data = document.getElementById(dateId).value;
+        const hora = document.getElementById(timeId).value;
+        if (!data || !hora) { alert('Por favor, selecione a data e o horário.'); return; }
+
+        // Verificação de Disponibilidade
+        const verificacao = verificarDisponibilidade(data, hora, nome);
+        
+        if (!verificacao.disponivel) {
+            alert(`Ops! ${verificacao.mensagem}`);
+            return;
+        }
+
+        const novoAgendamento = { id: Date.now(), nome, especialidade, foto: '', data, hora, status: 'pending' };
+        const agendamentos = JSON.parse(localStorage.getItem('meus_agendamentos_cliente')) || [];
+        agendamentos.push(novoAgendamento);
+        localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+
+        const [y,m,d] = data.split('-');
+        modalText.innerHTML = `Sua reserva com <strong>${nome}</strong> foi enviada!<br><br>📅 ${d}/${m}/${y} às 🕒 ${hora}`;
+        modal.style.display = 'flex';
+    }
+
+
+    function closeModal() { modal.style.display = 'none'; }
+
+    /* ── CHAT POR PROFISSIONAL ── */
+    let activePro = null;
+
+    function openChat(nome, especialidade) {
+        activePro = nome;
+        document.getElementById('chatProName').textContent = nome;
+        document.getElementById('chatProSpec').textContent = especialidade;
+        document.getElementById('chatAvatar').textContent = nome.charAt(0).toUpperCase();
+        document.getElementById('chatPanel').classList.add('open');
+        document.getElementById('chatOverlay').classList.add('open');
+        loadChatMessages();
+        setTimeout(() => document.getElementById('chatInput').focus(), 300);
+    }
+
+    function closeChat() {
+        document.getElementById('chatPanel').classList.remove('open');
+        document.getElementById('chatOverlay').classList.remove('open');
+        activePro = null;
+    }
+
+    function loadChatMessages() {
+        const area = document.getElementById('chatMessages');
+        const history = JSON.parse(localStorage.getItem(`chat_cli_${activePro}`)) || [];
+
+        if (history.length === 0) {
+            area.innerHTML = `
+                <div class="chat-empty">
+                    <i class="fas fa-comment-dots"></i>
+                    Inicie uma conversa com ${activePro}!
+                </div>`;
+        } else {
+            area.innerHTML = history.map(m => `
+                <div class="msg-bubble ${m.sender === 'Você' ? 'sent' : 'received'}">
+                    ${m.text}
+                    <div class="msg-time">${m.time || ''}</div>
+                </div>`).join('');
+        }
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function sendMsg() {
+        const input = document.getElementById('chatInput');
+        const text  = input.value.trim();
+        if (!text || !activePro) return;
+
+        const now  = new Date();
+        const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const key  = `chat_cli_${activePro}`;
+        const history = JSON.parse(localStorage.getItem(key)) || [];
+        history.push({ sender: 'Você', text, time });
+        localStorage.setItem(key, JSON.stringify(history));
+
+        const area = document.getElementById('chatMessages');
+        const emptyEl = area.querySelector('.chat-empty');
+        if (emptyEl) emptyEl.remove();
+
+        area.insertAdjacentHTML('beforeend', `
+            <div class="msg-bubble sent">
+                ${text}
+                <div class="msg-time">${time}</div>
+            </div>`);
+        area.scrollTop = area.scrollHeight;
+        input.value = '';
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter') sendMsg();
+    }
+
+    /* ─── NOVA LÓGICA DE GRADE EXPANSÍVEL ───────────────── */
+    function toggleAvailabilityGrid(btn, nome, spec) {
+        const card = btn.closest('.pro-card');
+        const panel = card.querySelector('.availability-panel');
+        const isOpen = panel.classList.contains('open');
+
+        // Fechar outros painéis abertos
+        document.querySelectorAll('.availability-panel.open').forEach(p => {
+            if (p !== panel) {
+                p.classList.remove('open');
+                const otherBtn = p.closest('.pro-card').querySelector('.btn-ver-disponibilidade');
+                if (otherBtn) {
+                    otherBtn.classList.remove('active');
+                    otherBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Ver Dias e Horários';
+                }
+            }
+        });
+
+        if (isOpen) {
+            panel.classList.remove('open');
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fas fa-calendar-alt"></i> Ver Dias e Horários';
+        } else {
+            renderWeeklyGrid(panel, nome, spec);
+            panel.classList.add('open');
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-times"></i> Fechar Agenda';
+            
+            // Scroll suave para o card
+            setTimeout(() => {
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 300);
+        }
+    }
+
+    function renderWeeklyGrid(container, nome, spec) {
+        container.innerHTML = `
+            <div class="weekly-grid-container">
+                <div class="weekly-grid-header">
+                    <div class="weekly-grid-title">
+                        <i class="fas fa-calendar-day"></i> Escolha um horário para agendar:
+                    </div>
+                </div>
+                <div class="weekly-grid"></div>
+            </div>`;
+
+        const grid = container.querySelector('.weekly-grid');
+        const dayNamesPT = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+        const dayLabelsShort = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+        const availability = JSON.parse(localStorage.getItem('agendai_disponibilidade')) || {};
+
+        let daysRendered = 0;
+        let dayOffset = 0;
+
+        while (daysRendered < 5 && dayOffset < 10) {
+            const date = new Date();
+            date.setDate(date.getDate() + dayOffset);
+            const dayName = dayNamesPT[date.getDay()];
+            const config = availability[dayName];
+
+            if (config) {
+                const dateStr = date.toISOString().split('T')[0];
+                const dayLabel = `${dayLabelsShort[date.getDay()]} ${date.getDate()}/${date.getMonth() + 1}`;
+                
+                const col = document.createElement('div');
+                col.className = 'day-column';
+                col.innerHTML = `<div class="day-header">${dayLabel}</div>`;
+
+                // Chama a função global definida em disponibilidade.js
+                const slots = typeof obterSlotsDisponiveis === 'function' ? obterSlotsDisponiveis(nome, dateStr) : [];
+                
+                if (slots.length > 0) {
+                    slots.forEach(slot => {
+                        const pill = document.createElement('div');
+                        pill.className = 'slot-pill';
+                        pill.textContent = slot;
+                        pill.onclick = () => finalizarAgendamentoDireto(nome, spec, dateStr, slot);
+                        col.appendChild(pill);
+                    });
+                } else {
+                    col.innerHTML += `<div style="font-size:10px; color:var(--muted); text-align:center; padding:10px 0;">Lotado</div>`;
+                }
+
+                grid.appendChild(col);
+                daysRendered++;
+            }
+            dayOffset++;
+        }
+
+        if (daysRendered === 0) {
+            grid.innerHTML = '<div class="no-availability-msg">Não há horários disponíveis nos próximos dias.</div>';
+        }
+    }
+
+    function finalizarAgendamentoDireto(nome, spec, data, hora) {
+        const [y, m, d] = data.split('-');
+        if (!confirm(`Confirmar agendamento com ${nome} para ${d}/${m}/${y} às ${hora}?`)) return;
+
+        const novoAgendamento = { 
+            id: Date.now(), 
+            nome, 
+            especialidade: spec, 
+            foto: '', 
+            data, 
+            hora, 
+            status: 'pending' 
+        };
+
+        const agendamentos = JSON.parse(localStorage.getItem('meus_agendamentos_cliente')) || [];
+        agendamentos.push(novoAgendamento);
+        localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+
+        if (modalText && modal) {
+            modalText.innerHTML = `Sua reserva com <strong>${nome}</strong> foi confirmada!<br><br>📅 ${d}/${m}/${y} às 🕒 ${hora}`;
+            modal.style.display = 'flex';
+        } else {
+            alert(`Sucesso! Agendado com ${nome} para ${d}/${m}/${y} às ${hora}`);
+        }
+        
+        // Fechar o painel após agendar
+        document.querySelectorAll('.availability-panel.open').forEach(p => p.classList.remove('open'));
+        document.querySelectorAll('.btn-ver-disponibilidade.active').forEach(b => {
+            b.classList.remove('active');
+            b.innerHTML = '<i class="fas fa-calendar-alt"></i> Ver Dias e Horários';
+        });
+    }
+</script>
+</body>
+</html>

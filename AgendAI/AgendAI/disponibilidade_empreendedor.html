@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Definir Disponibilidade</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --sidebar-w: 260px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 28px;
+            padding: 0 8px;
+        }
+
+        .sidebar-logo i {
+            font-size: 24px;
+        }
+
+        .sidebar-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 12px 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+            border: none;
+            background: none;
+            width: 100%;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .sidebar-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .sidebar-link:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .sidebar-link:hover i {
+            color: var(--primary);
+        }
+
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active i {
+            color: var(--primary);
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: var(--primary);
+        }
+
+        .sidebar-link.danger {
+            color: var(--danger);
+            margin-top: auto;
+        }
+
+        .sidebar-link.danger:hover {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 12px 0;
+        }
+
+        /* ── MAIN ── */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-header .breadcrumb {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .page-header p {
+            font-size: 15px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* Grid layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* Card genérico */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+            font-size: 17px;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        /* ── DAY CARDS ── */
+        .days-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .day-card {
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.25s ease;
+            background: var(--white);
+        }
+
+        .day-card.day-active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        /* Toggle switch */
+        .toggle-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .toggle-wrap input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-label {
+            display: block;
+            width: 44px;
+            height: 24px;
+            background: #cbd5e1;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.25s;
+            position: relative;
+        }
+
+        .toggle-label::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-wrap input:checked+.toggle-label {
+            background: var(--primary);
+        }
+
+        .toggle-wrap input:checked+.toggle-label::after {
+            transform: translateX(20px);
+        }
+
+        /* Day name */
+        .day-name-col {
+            min-width: 110px;
+        }
+
+        .day-name-col strong {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            display: block;
+        }
+
+        .day-name-col span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* Time inputs */
+        .time-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .time-range label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .time-range input[type="time"] {
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 110px;
+            margin: 0;
+        }
+
+        .time-range input[type="time"]:not(:disabled) {
+            background: white;
+        }
+
+        .time-range input[type="time"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .time-range input[type="time"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .time-separator {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* Save button */
+        .btn-save {
+            margin-top: 24px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        /* ── CALENDAR CARD ── */
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .cal-btn {
+            width: 32px !important;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.2s;
+        }
+
+        .cal-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .day-name-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            padding: 6px 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .calendar-day {
+            padding: 8px 2px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+            background: transparent;
+            transition: background 0.15s;
+        }
+
+        .calendar-day:hover:not(.empty) {
+            background: var(--primary-light);
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .calendar-day.empty {
+            color: #c0cad6;
+        }
+
+        .calendar-day.has-appointment {
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 700;
+            border: 1px solid #bbf7d0;
+        }
+
+        .calendar-day.current-day {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            border-radius: 8px;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Summary card */
+        .summary-card {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: var(--radius);
+            padding: 24px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .summary-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+
+        .summary-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .summary-stat:last-child {
+            border-bottom: none;
+        }
+
+        .summary-stat span {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .summary-stat strong {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--text);
+            color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        @media (max-width: 900px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-calendar-alt"></i>
+            AgendAi
+        </div>
+
+        <span class="sidebar-section-label">Menu</span>
+
+        <a href="dashboard_empreendedor.html" class="sidebar-link">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+        </a>
+        <a href="meus_agendamentos_empreendedor.html" class="sidebar-link">
+            <i class="fas fa-calendar-check"></i>
+            Meus Agendamentos
+        </a>
+        <a href="disponibilidade_empreendedor.html" class="sidebar-link active">
+            <i class="fas fa-clock"></i>
+            Disponibilidade
+        </a>
+
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-divider"></div>
+
+        <a href="index.html" class="sidebar-link danger"
+            onclick="event.preventDefault(); window.location.href='index.html';">
+            <i class="fas fa-sign-out-alt"></i>
+            Sair
+        </a>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="main-content">
+
+        <div class="page-header">
+            <div class="breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Início</span>
+                <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+                <span>Disponibilidade</span>
+            </div>
+            <h1>Minha Disponibilidade</h1>
+            <p>Configure seus dias e horários disponíveis para receber agendamentos.</p>
+        </div>
+
+        <div class="content-grid">
+
+            <!-- Coluna esquerda: formulário de dias -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-sliders-h"></i>
+                    Horários por dia da semana
+                </div>
+                <p class="card-subtitle">Ative os dias e defina o horário de atendimento.</p>
+
+                <div class="days-list" id="daysList">
+
+                    <!-- Segunda -->
+                    <div class="day-card" id="card-segunda">
+                        <div class="toggle-wrap">
+                            <input type="checkbox" id="segunda" name="day" value="Segunda" onchange="toggleDay(this)">
+                            <label class="toggle-label" for="segunda"></label>
+                        </div>
+                        <div class="day-name-col">
+                            <strong>Segunda-feira</strong>
+                            <span>Seg</span>
+                        </div>
+                        <div class="time-range">
+                            <label>De</label>
+                            <input type="time" id="segunda-start" class="time-input" disabled value="08:00">
+                            <span class="time-separator">–</span>
+                            <label>Até</label>
+                            <input type="time" id="segunda-end" class="time-input" disabled value="18:00">
+                        </div>
+                    </div>
+
+                    <!-- Terça -->
+                    <div class="day-card" id="card-terca">
+                        <div class="toggle-wrap">
+                            <input type="checkbox" id="terca" name="day" value="Terça" onchange="toggleDay(this)">
+                            <label class="toggle-label" for="terca"></label>
+                        </div>
+                        <div class="day-name-col">
+                            <strong>Terça-feira</strong>
+                            <span>Ter</span>
+                        </div>
+                        <div class="time-range">
+                            <label>De</label>
+                            <input type="time" id="terca-start" class="time-input" disabled value="08:00">
+                            <span class="time-separator">–</span>
+                            <label>Até</label>
+                            <input type="time" id="terca-end" class="time-input" disabled value="18:00">
+                        </div>
+                    </div>
+
+                    <!-- Quarta -->
+                    <div class="day-card" id="card-quarta">
+                        <div class="toggle-wrap">
+                            <input type="checkbox" id="quarta" name="day" value="Quarta" onchange="toggleDay(this)">
+                            <label class="toggle-label" for="quarta"></label>
+                        </div>
+                        <div class="day-name-col">
+                            <strong>Quarta-feira</strong>
+                            <span>Qua</span>
+                        </div>
+                        <div class="time-range">
+                            <label>De</label>
+                            <input type="time" id="quarta-start" class="time-input" disabled value="08:00">
+                            <span class="time-separator">–</span>
+                            <label>Até</label>
+                            <input type="time" id="quarta-end" class="time-input" disabled value="18:00">
+                        </div>
+                    </div>
+
+                    <!-- Quinta -->
+                    <div class="day-card" id="card-quinta">
+                        <div class="toggle-wrap">
+                            <input type="checkbox" id="quinta" name="day" value="Quinta" onchange="toggleDay(this)">
+                            <label class="toggle-label" for="quinta"></label>
+                        </div>
+                        <div class="day-name-col">
+                            <strong>Quinta-feira</strong>
+                            <span>Qui</span>
+                        </div>
+                        <div class="time-range">
+                            <label>De</label>
+                            <input type="time" id="quinta-start" class="time-input" disabled value="08:00">
+                            <span class="time-separator">–</span>
+                            <label>Até</label>
+                            <input type="time" id="quinta-end" class="time-input" disabled value="18:00">
+                        </div>
+                    </div>
+
+                    <!-- Sexta -->
+                    <div class="day-card" id="card-sexta">
+                        <div class="toggle-wrap">
+                            <input type="checkbox" id="sexta" name="day" value="Sexta" onchange="toggleDay(this)">
+                            <label class="toggle-label" for="sexta"></label>
+                        </div>
+                        <div class="day-name-col">
+                            <strong>Sexta-feira</strong>
+                            <span>Sex</span>
+                        </div>
+                        <div class="time-range">
+                            <label>De</label>
+                            <input type="time" id="sexta-start" class="time-input" disabled value="08:00">
+                            <span class="time-separator">–</span>
+                            <label>Até</label>
+                            <input type="time" id="sexta-end" class="time-input" disabled value="18:00">
+                        </div>
+                    </div>
+
+                    <!-- Sábado -->
+                    <div class="day-card" id="card-sabado">
+                        <div class="toggle-wrap">
+                            <input type="checkbox" id="sabado" name="day" value="Sábado" onchange="toggleDay(this)">
+                            <label class="toggle-label" for="sabado"></label>
+                        </div>
+                        <div class="day-name-col">
+                            <strong>Sábado</strong>
+                            <span>Sáb</span>
+                        </div>
+                        <div class="time-range">
+                            <label>De</label>
+                            <input type="time" id="sabado-start" class="time-input" disabled value="09:00">
+                            <span class="time-separator">–</span>
+                            <label>Até</label>
+                            <input type="time" id="sabado-end" class="time-input" disabled value="14:00">
+                        </div>
+                    </div>
+
+                    <!-- Domingo -->
+                    <div class="day-card" id="card-domingo">
+                        <div class="toggle-wrap">
+                            <input type="checkbox" id="domingo" name="day" value="Domingo" onchange="toggleDay(this)">
+                            <label class="toggle-label" for="domingo"></label>
+                        </div>
+                        <div class="day-name-col">
+                            <strong>Domingo</strong>
+                            <span>Dom</span>
+                        </div>
+                        <div class="time-range">
+                            <label>De</label>
+                            <input type="time" id="domingo-start" class="time-input" disabled value="09:00">
+                            <span class="time-separator">–</span>
+                            <label>Até</label>
+                            <input type="time" id="domingo-end" class="time-input" disabled value="13:00">
+                        </div>
+                    </div>
+
+                </div>
+
+                <button class="btn-save" id="save-btn" onclick="salvarDisponibilidade()">
+                    <i class="fas fa-save"></i>
+                    Salvar Disponibilidade
+                </button>
+            </div>
+
+            <!-- Coluna direita: calendário + resumo -->
+            <div>
+                <!-- Calendário -->
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Agendamentos do Mês
+                    </div>
+                    <p class="card-subtitle" style="margin-bottom: 16px;">Visualize os dias com agendamentos.</p>
+
+                    <div class="calendar-nav">
+                        <button class="cal-btn" id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                        <h4 id="currentMonthYear"></h4>
+                        <button class="cal-btn" id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+
+                    <div class="calendar-grid" id="calendarGrid"></div>
+
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: var(--primary);"></div>
+                            Hoje
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #bbf7d0;"></div>
+                            Com agendamento
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumo -->
+                <div class="summary-card">
+                    <h3><i class="fas fa-chart-bar" style="margin-right:8px;"></i>Resumo da semana</h3>
+                    <div class="summary-stat">
+                        <span>Dias ativos</span>
+                        <strong id="activeDaysCount">0</strong>
+                    </div>
+                    <div class="summary-stat">
+                        <span>Agendamentos confirmados</span>
+                        <strong>3</strong>
+                    </div>
+                    <div class="summary-stat">
+                        <span>Pendentes</span>
+                        <strong>2</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Disponibilidade salva!</span>
+    </div>
+
+    <script src="disponibilidade.js"></script>
+    <script>
+        // Toggle visual de cada card de dia
+        function toggleDay(checkbox) {
+            const id = checkbox.id;
+            const card = document.getElementById('card-' + id);
+            const inputs = card.querySelectorAll('input[type="time"]');
+
+            inputs.forEach(inp => inp.disabled = !checkbox.checked);
+
+            if (checkbox.checked) {
+                card.classList.add('day-active');
+            } else {
+                card.classList.remove('day-active');
+            }
+
+            updateActiveDaysCount();
+        }
+
+        function updateActiveDaysCount() {
+            const checked = document.querySelectorAll('input[name="day"]:checked').length;
+            document.getElementById('activeDaysCount').textContent = checked;
+        }
+
+        // Toast
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function salvarDisponibilidade() {
+            const dias = document.querySelectorAll('input[name="day"]:checked');
+            if (dias.length === 0) {
+                showToast('Selecione pelo menos um dia.', '');
+                return;
+            }
+            showToast('Disponibilidade salva com sucesso!', 'success');
+        }
+
+        // Carregar dados salvos se disponibilidade.js não os carrega
+        window.addEventListener('DOMContentLoaded', () => {
+            updateActiveDaysCount();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendAi - Meu Perfil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59,130,246,0.15);
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 240px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 18px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--primary);
+            font-size: 21px;
+            font-weight: 800;
+            margin-bottom: 28px;
+            padding: 0 6px;
+        }
+
+        .sidebar-section-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 10px 5px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-link i { width: 17px; text-align: center; font-size: 14px; }
+        .sidebar-link:hover { background: var(--primary-light); color: var(--primary); }
+
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; height: 60%;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: var(--primary);
+        }
+
+        .sidebar-link.danger { color: var(--danger); }
+        .sidebar-link.danger:hover { background: var(--danger-light); color: var(--danger); }
+
+        .sidebar-spacer { flex: 1; }
+        .sidebar-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+        /* ── MAIN ── */
+        .main-content { flex: 1; overflow-y: auto; }
+
+        /* Page header banner */
+        .page-banner {
+            background: linear-gradient(135deg, #1e3a5f, #2563eb 60%, #60a5fa);
+            padding: 40px 40px 32px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-banner::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .page-banner h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+        .page-banner p  { font-size: 14px; opacity: 0.75; }
+
+        /* ── BODY ── */
+        .page-body {
+            padding: 32px 40px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h2 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .card-header i { color: var(--primary); font-size: 16px; }
+
+        .card-body { padding: 22px; }
+
+        /* ── AVATAR SECTION ── */
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .avatar-upload-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar-preview {
+            width: 96px; height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: 4px solid var(--border);
+            overflow: hidden;
+        }
+
+        .avatar-preview img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 30px; height: 30px;
+            background: var(--primary);
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .avatar-upload-btn:hover { background: var(--primary-hover); }
+        #avatarFileInput { display: none; }
+
+        .avatar-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .avatar-info p  { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+
+        .btn-avatar-url {
+            padding: 7px 14px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-avatar-url:hover { background: var(--primary); color: white; }
+
+        /* ── FORM ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full { grid-column: 1 / -1; }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-input, .form-textarea, .form-select {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--white);
+            width: 100%;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.6;
+        }
+
+        .char-count {
+            font-size: 11px;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        /* ── SERVIÇOS ── */
+        .service-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 0;
+            min-height: 44px;
+        }
+
+        .service-tag {
+            padding: 5px 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .service-tag button {
+            background: none; border: none;
+            color: inherit; cursor: pointer;
+            font-size: 12px; padding: 0; line-height: 1;
+            display: flex; align-items: center;
+            width: auto !important;
+        }
+
+        .add-service-row {
+            display: flex; gap: 8px; margin-top: 8px;
+        }
+
+        .add-service-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            margin: 0;
+        }
+
+        .add-service-row input:focus { border-color: var(--primary); }
+
+        .btn-add-service {
+            padding: 8px 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+            width: auto !important;
+        }
+
+        .btn-add-service:hover { background: var(--primary-hover); }
+
+        /* ── PORTFÓLIO ── */
+        .portfolio-grid-edit {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .portfolio-item-edit {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--bg);
+            border: 2px dashed var(--border);
+        }
+
+        .portfolio-item-edit img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .portfolio-item-edit .remove-photo {
+            position: absolute;
+            top: 6px; right: 6px;
+            width: 24px; height: 24px;
+            background: rgba(239,68,68,0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            width: 24px !important;
+        }
+
+        .portfolio-item-edit:hover .remove-photo { opacity: 1; }
+
+        .add-photo-btn {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 2px dashed var(--border);
+            background: var(--bg);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .add-photo-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .add-photo-btn i { font-size: 22px; }
+
+        .photo-input-row {
+            display: flex; gap: 8px;
+        }
+
+        .photo-input-row input {
+            flex: 1;
+            padding: 9px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            margin: 0;
+        }
+
+        .photo-input-row input:focus { border-color: var(--primary); }
+
+        .btn-add-url {
+            padding: 9px 16px;
+            background: var(--primary);
+            color: white; border: none;
+            border-radius: 8px;
+            font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            white-space: nowrap; width: auto !important;
+            transition: background 0.2s;
+        }
+
+        .btn-add-url:hover { background: var(--primary-hover); }
+
+        /* File upload area */
+        .upload-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .upload-drop-zone:hover, .upload-drop-zone.drag-over {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .upload-drop-zone i { font-size: 28px; display: block; margin-bottom: 8px; }
+        .upload-drop-zone p { font-size: 13px; font-weight: 500; }
+        .upload-drop-zone span { font-size: 12px; opacity: 0.7; }
+        #photoFileInput { display: none; }
+
+        /* ── SAVE BUTTON ── */
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white; border: none;
+            border-radius: 12px;
+            font-size: 15px; font-weight: 700;
+            font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            box-shadow: 0 4px 14px rgba(59,130,246,0.35);
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.45); }
+        .btn-save:active { transform: translateY(0); }
+
+        /* ── PREVIEW CARD ── */
+        .preview-sticky {
+            position: sticky;
+            top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .preview-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 4px;
+        }
+
+        /* Preview que espelha o modal do cliente */
+        .preview-card {
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .preview-header {
+            height: 80px;
+            background: linear-gradient(135deg, #1e3a5f, #2563eb 60%, #60a5fa);
+            position: relative;
+        }
+
+        .preview-avatar {
+            position: absolute;
+            bottom: -30px; left: 22px;
+            width: 62px; height: 62px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 800; color: white;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            overflow: hidden;
+        }
+
+        .preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .preview-body {
+            padding: 38px 20px 18px;
+        }
+
+        .preview-name  { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
+        .preview-spec  { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+        .preview-stars { color: #f59e0b; font-size: 12px; margin-bottom: 10px; }
+
+        .preview-bio {
+            font-size: 12px; color: var(--muted);
+            line-height: 1.6; margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .preview-portfolio-mini {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .preview-portfolio-mini .mini-img {
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
+
+        .preview-portfolio-mini img {
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+        }
+
+        .preview-portfolio-mini .mini-placeholder {
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            color: #cbd5e1; font-size: 16px;
+        }
+
+        .preview-services {
+            display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;
+        }
+
+        .preview-service-tag {
+            padding: 3px 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 28px; right: 28px;
+            padding: 13px 20px;
+            border-radius: 12px; color: white;
+            font-size: 14px; font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.3s; z-index: 999;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: var(--success); }
+        .toast.error   { background: var(--danger); }
+
+        @media (max-width: 1100px) {
+            .page-body { grid-template-columns: 1fr; }
+            .preview-sticky { position: static; }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar { display: none; }
+            .page-body { padding: 16px; }
+            .page-banner { padding: 26px 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-calendar-alt"></i>
+        AgendAi
+    </div>
+
+    <span class="sidebar-section-label">Menu</span>
+
+    <a href="dashboard_empreendedor.html" class="sidebar-link">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+    </a>
+    <a href="meus_agendamentos_empreendedor.html" class="sidebar-link">
+        <i class="fas fa-calendar-check"></i>
+        Meus Agendamentos
+    </a>
+    <a href="disponibilidade_empreendedor.html" class="sidebar-link">
+        <i class="fas fa-clock"></i>
+        Disponibilidade
+    </a>
+    <a href="perfil_empreendedor.html" class="sidebar-link active">
+        <i class="fas fa-user-circle"></i>
+        Meu Perfil
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+
+    <a href="index.html" class="sidebar-link danger"
+       onclick="event.preventDefault(); window.location.href='index.html';">
+        <i class="fas fa-sign-out-alt"></i>
+        Sair
+    </a>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main-content">
+
+    <div class="page-banner">
+        <h1><i class="fas fa-user-circle" style="opacity:.8;margin-right:10px;"></i>Meu Perfil</h1>
+        <p>Configure como os clientes vão te ver na plataforma. Tudo é salvo automaticamente.</p>
+    </div>
+
+    <div class="page-body">
+
+        <!-- ── COLUNA ESQUERDA: EDIÇÃO ── -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+
+            <!-- Avatar + Nome rápido -->
+            <div class="card">
+                <div class="avatar-section">
+                    <div class="avatar-upload-wrap">
+                        <div class="avatar-preview" id="avatarPreview">C</div>
+                        <label class="avatar-upload-btn" for="avatarFileInput" title="Enviar foto">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                        <input type="file" id="avatarFileInput" accept="image/*">
+                    </div>
+                    <div class="avatar-info">
+                        <h3 id="avatarName">Seu Nome</h3>
+                        <p>Foto de perfil visível para os clientes</p>
+                        <button class="btn-avatar-url" onclick="promptAvatarUrl()">
+                            <i class="fas fa-link"></i> Usar URL de imagem
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Informações básicas -->
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="inputNome">Nome completo</label>
+                            <input type="text" id="inputNome" class="form-input" placeholder="Ex: Carlos Silva" oninput="livePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputEspecialidade">Especialidade principal</label>
+                            <input type="text" id="inputEspecialidade" class="form-input" placeholder="Ex: Barbeiro" oninput="livePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputLocalizacao">Localização</label>
+                            <input type="text" id="inputLocalizacao" class="form-input" placeholder="Ex: Pinheiros, SP" oninput="livePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputExperiencia">Experiência</label>
+                            <input type="text" id="inputExperiencia" class="form-input" placeholder="Ex: 8 anos de experiência" oninput="livePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputCategoria">Categoria</label>
+                            <select id="inputCategoria" class="form-select" onchange="livePreview()">
+                                <option value="Beleza">Beleza</option>
+                                <option value="Saúde">Saúde</option>
+                                <option value="Serviços">Serviços</option>
+                                <option value="Educação">Educação</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputTelefone">WhatsApp / Telefone</label>
+                            <input type="tel" id="inputTelefone" class="form-input" placeholder="(11) 99999-9999" oninput="livePreview()">
+                        </div>
+                        <div class="form-group full">
+                            <label for="inputBio">Bio / Apresentação</label>
+                            <textarea id="inputBio" class="form-textarea" maxlength="300"
+                                placeholder="Fale sobre você, seus diferenciais e o que oferece..."
+                                oninput="updateCharCount(); livePreview()"></textarea>
+                            <div class="char-count"><span id="charCount">0</span>/300 caracteres</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Serviços oferecidos -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-tags"></i>
+                    <h2>Serviços Oferecidos</h2>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+                        Adicione os serviços que você oferece. Eles aparecem como tags no seu perfil.
+                    </p>
+                    <div class="service-tags" id="serviceTags"></div>
+                    <div class="add-service-row">
+                        <input type="text" id="serviceInput" placeholder="Ex: Corte Degradê, Barba..." onkeypress="serviceKeyPress(event)">
+                        <button class="btn-add-service" onclick="addService()">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfólio -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-images"></i>
+                    <h2>Portfólio de Trabalhos</h2>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">
+                        Mostre seus melhores trabalhos. As fotos aparecem no seu perfil público.
+                    </p>
+
+                    <div class="portfolio-grid-edit" id="portfolioGrid"></div>
+
+                    <!-- Adicionar por upload -->
+                    <div class="upload-drop-zone" id="dropZone" onclick="document.getElementById('photoFileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Clique ou arraste fotos aqui</p>
+                        <span>JPG, PNG, WEBP · máx. 5MB cada</span>
+                    </div>
+                    <input type="file" id="photoFileInput" accept="image/*" multiple>
+
+                    <!-- Adicionar por URL -->
+                    <div style="margin-top:12px;">
+                        <p style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">
+                            Ou adicione pelo link da imagem:
+                        </p>
+                        <div class="photo-input-row">
+                            <input type="text" id="photoUrlInput" placeholder="https://... (URL da imagem)" onkeypress="urlKeyPress(event)">
+                            <button class="btn-add-url" onclick="addPhotoByUrl()">
+                                <i class="fas fa-link"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salvar -->
+            <button class="btn-save" onclick="saveProfile()">
+                <i class="fas fa-save"></i> Salvar Perfil
+            </button>
+
+        </div>
+
+        <!-- ── COLUNA DIREITA: PREVIEW ── -->
+        <div class="preview-sticky">
+            <div class="preview-label">
+                <i class="fas fa-eye" style="color:var(--primary);"></i>
+                Prévia — Como os clientes vão te ver
+            </div>
+
+            <div class="preview-card">
+                <div class="preview-header" id="previewHeader">
+                    <div class="preview-avatar" id="previewAvatar">C</div>
+                </div>
+                <div class="preview-body">
+                    <div class="preview-name" id="previewName">Seu Nome</div>
+                    <div class="preview-spec" id="previewSpec">Especialidade</div>
+                    <div class="preview-stars">★★★★★ <span style="color:var(--muted);">Novo perfil</span></div>
+                    <div class="preview-services" id="previewServices"></div>
+                    <div class="preview-bio" id="previewBio">Sua apresentação aparecerá aqui...</div>
+                    <div class="preview-portfolio-mini" id="previewPortfolio">
+                        <div class="mini-img mini-placeholder"><i class="fas fa-image"></i></div>
+                        <div class="mini-img mini-placeholder"><i class="fas fa-image"></i></div>
+                        <div class="mini-img mini-placeholder"><i class="fas fa-image"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dica -->
+            <div style="background:var(--primary-light);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--primary);">
+                <i class="fas fa-lightbulb" style="margin-right:6px;"></i>
+                <strong>Dica:</strong> Perfis com foto e portfólio completo recebem <strong>3x mais</strong> agendamentos!
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMsg"></span>
+</div>
+
+<script>
+    /* ─── STATE ────────────────────────────────────────────── */
+    let portfolioPhotos = [];
+    let services = [];
+    let avatarSrc = null;
+
+    const STORAGE_KEY = 'agendai_perfil_empreendedor';
+
+    /* ─── CARREGAR PERFIL SALVO ─────────────────────────────── */
+    function loadProfile() {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!saved) return;
+
+        if (saved.nome)          document.getElementById('inputNome').value = saved.nome;
+        if (saved.especialidade) document.getElementById('inputEspecialidade').value = saved.especialidade;
+        if (saved.localizacao)   document.getElementById('inputLocalizacao').value = saved.localizacao;
+        if (saved.experiencia)   document.getElementById('inputExperiencia').value = saved.experiencia;
+        if (saved.categoria)     document.getElementById('inputCategoria').value = saved.categoria;
+        if (saved.telefone)      document.getElementById('inputTelefone').value = saved.telefone;
+        if (saved.bio)           document.getElementById('inputBio').value = saved.bio;
+        if (saved.avatar)        setAvatar(saved.avatar);
+        if (saved.services)      { services = saved.services; renderServices(); }
+        if (saved.portfolio)     { portfolioPhotos = saved.portfolio; renderPortfolio(); }
+
+        updateCharCount();
+        livePreview();
+    }
+
+    /* ─── SALVAR PERFIL ─────────────────────────────────────── */
+    function saveProfile() {
+        const data = {
+            nome:          document.getElementById('inputNome').value,
+            especialidade: document.getElementById('inputEspecialidade').value,
+            localizacao:   document.getElementById('inputLocalizacao').value,
+            experiencia:   document.getElementById('inputExperiencia').value,
+            categoria:     document.getElementById('inputCategoria').value,
+            telefone:      document.getElementById('inputTelefone').value,
+            bio:           document.getElementById('inputBio').value,
+            avatar:        avatarSrc,
+            services,
+            portfolio:     portfolioPhotos,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        showToast('Perfil salvo com sucesso!', 'success');
+    }
+
+    /* ─── AVATAR ────────────────────────────────────────────── */
+    function setAvatar(src) {
+        avatarSrc = src;
+        const prev = document.getElementById('avatarPreview');
+        prev.innerHTML = `<img src="${src}" alt="Avatar">`;
+        document.getElementById('previewAvatar').innerHTML = `<img src="${src}" alt="Avatar">`;
+    }
+
+    function promptAvatarUrl() {
+        const url = prompt('Cole o link (URL) da sua foto de perfil:');
+        if (url && url.startsWith('http')) {
+            setAvatar(url);
+            livePreview();
+        }
+    }
+
+    document.getElementById('avatarFileInput').addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => { setAvatar(e.target.result); livePreview(); };
+        reader.readAsDataURL(file);
+    });
+
+    /* ─── PORTFÓLIO ─────────────────────────────────────────── */
+    function renderPortfolio() {
+        const grid = document.getElementById('portfolioGrid');
+        grid.innerHTML = portfolioPhotos.map((src, i) => `
+            <div class="portfolio-item-edit">
+                <img src="${src}" alt="Trabalho ${i+1}" onerror="this.parentElement.remove()">
+                <button class="remove-photo" onclick="removePhoto(${i})" title="Remover">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>`).join('');
+        updatePreviewPortfolio();
+    }
+
+    function addPhotoByUrl() {
+        const url = document.getElementById('photoUrlInput').value.trim();
+        if (!url || !url.startsWith('http')) {
+            showToast('Cole um link válido de imagem (https://...)', 'error');
+            return;
+        }
+        portfolioPhotos.push(url);
+        document.getElementById('photoUrlInput').value = '';
+        renderPortfolio();
+        livePreview();
+    }
+
+    function urlKeyPress(e) { if (e.key === 'Enter') addPhotoByUrl(); }
+
+    function removePhoto(index) {
+        portfolioPhotos.splice(index, 1);
+        renderPortfolio();
+        livePreview();
+    }
+
+    // Upload de arquivo
+    document.getElementById('photoFileInput').addEventListener('change', function() {
+        [...this.files].forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                portfolioPhotos.push(e.target.result);
+                renderPortfolio();
+                livePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+        this.value = '';
+    });
+
+    // Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave',    () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        [...e.dataTransfer.files].forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = ev => { portfolioPhotos.push(ev.target.result); renderPortfolio(); livePreview(); };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    /* ─── SERVIÇOS ──────────────────────────────────────────── */
+    function renderServices() {
+        const container = document.getElementById('serviceTags');
+        container.innerHTML = services.map((s, i) => `
+            <span class="service-tag">
+                ${s}
+                <button onclick="removeService(${i})" title="Remover"><i class="fas fa-times"></i></button>
+            </span>`).join('');
+        updatePreviewServices();
+    }
+
+    function addService() {
+        const val = document.getElementById('serviceInput').value.trim();
+        if (!val) return;
+        if (services.includes(val)) { showToast('Serviço já adicionado.', 'error'); return; }
+        services.push(val);
+        document.getElementById('serviceInput').value = '';
+        renderServices();
+        livePreview();
+    }
+
+    function removeService(i) { services.splice(i, 1); renderServices(); livePreview(); }
+    function serviceKeyPress(e) { if (e.key === 'Enter') addService(); }
+
+    /* ─── CHAR COUNT ────────────────────────────────────────── */
+    function updateCharCount() {
+        const len = document.getElementById('inputBio').value.length;
+        document.getElementById('charCount').textContent = len;
+    }
+
+    /* ─── LIVE PREVIEW ──────────────────────────────────────── */
+    function livePreview() {
+        const nome     = document.getElementById('inputNome').value || 'Seu Nome';
+        const spec     = document.getElementById('inputEspecialidade').value || 'Especialidade';
+        const bio      = document.getElementById('inputBio').value || 'Sua apresentação aparecerá aqui...';
+
+        document.getElementById('avatarName').textContent = nome;
+        document.getElementById('previewName').textContent = nome;
+        document.getElementById('previewSpec').textContent = spec;
+        document.getElementById('previewBio').textContent  = bio;
+
+        // Avatar inicial
+        if (!avatarSrc) {
+            const inicial = nome.charAt(0).toUpperCase();
+            document.getElementById('avatarPreview').textContent = inicial;
+            document.getElementById('previewAvatar').textContent = inicial;
+        }
+
+        updatePreviewServices();
+        updatePreviewPortfolio();
+    }
+
+    function updatePreviewServices() {
+        const container = document.getElementById('previewServices');
+        container.innerHTML = services.slice(0, 4).map(s =>
+            `<span class="preview-service-tag">${s}</span>`).join('');
+    }
+
+    function updatePreviewPortfolio() {
+        const container = document.getElementById('previewPortfolio');
+        const slots = 3;
+        let html = '';
+        for (let i = 0; i < slots; i++) {
+            if (portfolioPhotos[i]) {
+                html += `<div class="mini-img"><img src="${portfolioPhotos[i]}" alt=""></div>`;
+            } else {
+                html += `<div class="mini-img mini-placeholder"><i class="fas fa-image"></i></div>`;
+            }
+        }
+        container.innerHTML = html;
+    }
+
+    /* ─── TOAST ─────────────────────────────────────────────── */
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        t.className = `toast ${type} show`;
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    /* ─── INIT ──────────────────────────────────────────────── */
+    loadProfile();
+</script>
+</body>
+</html>
