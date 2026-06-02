@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendai — Meus Agendamentos</title>
+    <link rel="icon" type="image/svg+xml" 
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' 
+          viewBox='0 0 24 24' fill='%233b82f6'>
+          <path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z'/>
+          </svg>">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --success-dark: #065f46;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --danger-dark: #991b1b;
+            --sidebar-w: 260px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+            --radius: 16px;
+        }
+
+        body { display:flex; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 28px;
+            padding: 0 8px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo i { font-size: 24px; }
+
+        .sidebar-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 12px 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .page-wrapper { flex:1; display:flex; overflow:hidden; }
+        .main-content { flex:1; padding:36px 40px; overflow-y:auto; }
+
+        /* Header */
+        .page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+        .breadcrumb { font-size:13px; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .page-header h1 { font-size:26px; font-weight:800; margin-bottom:4px; }
+        .page-header p  { font-size:14px; color:var(--muted); }
+
+        .header-actions { display:flex; gap:10px; flex-wrap:wrap; }
+
+        /* Stats */
+        .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+
+        /* Batch pending */
+        .batch-pending {
+            background:var(--warning-light);
+            border:1.5px solid var(--warning);
+            border-radius:14px;
+            padding:18px 20px;
+            margin-bottom:20px;
+            animation:fadeUp 0.3s ease;
+        }
+        .batch-pending-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+        .batch-pending-header h3 { font-size:15px; font-weight:700; color:var(--warning-dark); display:flex; align-items:center; gap:8px; }
+        .batch-pending-header h3 i { color:var(--warning); }
+
+        .batch-actions { display:flex; gap:8px; }
+        .btn-accept-all { padding:8px 16px; border-radius:8px; background:var(--success); color:white; border:none; font-size:13px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; display:flex; align-items:center; gap:6px; transition:var(--transition); min-height:36px; }
+        .btn-accept-all:hover { background:var(--success-dark); }
+
+        /* View toggle */
+        .view-toggle { display:flex; gap:4px; background:var(--bg); border-radius:10px; padding:4px; }
+        .view-btn { padding:7px 14px; border-radius:7px; font-size:13px; font-weight:600; border:none; background:transparent; color:var(--muted); cursor:pointer; font-family:'Inter',sans-serif; display:flex; align-items:center; gap:6px; transition:var(--transition); }
+        .view-btn.active { background:var(--white); color:var(--primary); box-shadow:var(--shadow-sm); }
+
+        /* Filters */
+        .filters-row { display:flex; align-items:center; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+        .search-box { position:relative; }
+        .search-box i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; }
+        .search-box input { padding:8px 12px 8px 32px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; outline:none; width:200px; transition:border-color 0.2s, box-shadow 0.2s; min-height:36px; background:var(--white); color:var(--text); }
+        .search-box input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+
+        /* Cards */
+        .appointments-grid { display:flex; flex-direction:column; gap:12px; }
+
+        .appt-card {
+            background:var(--white);
+            border-radius:14px;
+            box-shadow:var(--shadow);
+            padding:18px 22px;
+            display:flex;
+            align-items:center;
+            gap:18px;
+            border-left:5px solid var(--border);
+            transition:transform 0.2s, box-shadow 0.2s;
+            animation:fadeUp 0.3s ease both;
+        }
+        .appt-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+        .appt-card.status-pending   { border-color:var(--warning); }
+        .appt-card.status-confirmed { border-color:var(--success); }
+        .appt-card.status-cancelled { border-color:var(--danger); opacity:0.6; filter:grayscale(0.3); }
+        .appt-card.status-completed { border-color:var(--purple); }
+
+        .appt-avatar { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+        .appt-info { flex:1; min-width:0; }
+        .appt-info h3 { font-size:15px; font-weight:700; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .appt-meta { display:flex; gap:14px; flex-wrap:wrap; }
+        .appt-meta span { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:4px; }
+        .appt-meta i { font-size:11px; color:var(--primary); }
+
+        .appt-actions { display:flex; gap:8px; flex-shrink:0; }
+
+        .btn-action { padding:7px 13px; border-radius:8px; font-size:12px; font-weight:700; border:none; cursor:pointer; font-family:'Inter',sans-serif; display:flex; align-items:center; gap:5px; transition:var(--transition); min-height:36px; }
+        .btn-confirm { background:var(--success-light); color:var(--success-dark); }
+        .btn-confirm:hover { background:var(--success); color:white; }
+        .btn-reject  { background:var(--danger-light); color:var(--danger-dark); }
+        .btn-reject:hover  { background:var(--danger); color:white; }
+        .btn-complete { background:var(--purple-light); color:#5b21b6; }
+        .btn-complete:hover { background:var(--purple); color:white; }
+        .btn-chat { background:var(--primary-light); color:var(--primary); }
+        .btn-chat:hover { background:var(--primary); color:white; }
+
+        /* Calendar view */
+        .calendar-view { display:none; }
+        .calendar-view.active { display:block; }
+        .list-view.hidden { display:none; }
+
+        .cal-week { display:grid; grid-template-columns:60px repeat(7,1fr); gap:1px; background:var(--border); border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+        .cal-header { background:var(--white); padding:10px 6px; font-size:11px; font-weight:700; color:var(--muted); text-align:center; text-transform:uppercase; }
+        .cal-header.today-col { color:var(--primary); }
+        .cal-time { background:var(--white); padding:10px 8px; font-size:11px; color:var(--muted); font-weight:600; text-align:right; }
+        .cal-cell { background:var(--white); min-height:50px; padding:4px; position:relative; }
+        .cal-cell.today-col { background:var(--primary-light); }
+        .cal-event { background:var(--success); color:white; border-radius:5px; padding:3px 6px; font-size:10px; font-weight:700; margin-bottom:2px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; cursor:pointer; }
+        .cal-event.pending { background:var(--warning); }
+
+        /* Export bar */
+        .export-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+
+        /* Chat panel */
+        .chat-panel { width:320px; background:var(--white); border-left:1px solid var(--border); display:none; flex-direction:column; flex-shrink:0; }
+        .chat-panel.open { display:flex; }
+        .chat-panel-header { padding:18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+        .chat-panel-header .chat-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center; }
+        .chat-panel-header .chat-info strong { display:block; font-size:14px; font-weight:700; }
+        .chat-panel-header .chat-info span { font-size:12px; color:var(--muted); }
+        .chat-close-btn { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:4px; border-radius:6px; transition:color 0.2s; margin-left:auto; }
+        .chat-close-btn:hover { color:var(--danger); background:var(--danger-light); }
+        .chat-messages-area { flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; background:#f8fafc; }
+        .msg-bubble { max-width:85%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.5; }
+        .msg-bubble.sent { background:var(--primary); color:white; align-self:flex-end; border-bottom-right-radius:4px; }
+        .msg-bubble.received { background:white; color:var(--text); align-self:flex-start; border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+        .chat-input-row { padding:14px; border-top:1px solid var(--border); display:flex; gap:8px; }
+        .chat-input-row input { flex:1; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+        .chat-input-row input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+        .chat-send { width:40px; height:40px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:background 0.2s; flex-shrink:0; }
+        .chat-send:hover { background:var(--primary-hover); }
+
+        @media (max-width:1100px) { .stats-row { grid-template-columns:repeat(2,1fr); } }
+        @media (max-width:768px) { .main-content { padding:20px; } .chat-panel { display:none !important; } }
+    </style>
+</head>
+<body class="has-bottom-nav">
+
+<aside class="sidebar">
+    <a href="dashboard_empreendedor.html" class="sidebar-logo"><i class="fas fa-calendar-alt"></i> Agendai</a>
+    <span class="sidebar-section-label">Menu</span>
+    <a href="dashboard_empreendedor.html" class="sidebar-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="meus_agendamentos_empreendedor.html" class="sidebar-link active"><i class="fas fa-calendar-check"></i> Agendamentos <span class="sidebar-badge hidden" id="pendingBadge">0</span></a>
+    <a href="disponibilidade_empreendedor.html" class="sidebar-link"><i class="fas fa-clock"></i> Disponibilidade</a>
+    <a href="perfil_empreendedor.html" class="sidebar-link"><i class="fas fa-user-circle"></i> Meu Perfil</a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+    <button class="sidebar-dark-toggle" onclick="toggleDark()"><i class="fas fa-moon"></i>Modo Escuro<div class="dark-toggle-knob"></div></button>
+    <div class="sidebar-divider"></div>
+    <a href="index.html" class="sidebar-link danger" onclick="event.preventDefault();document.body.classList.add('fade-out');setTimeout(()=>location.href='index.html',400);"><i class="fas fa-sign-out-alt"></i> Sair</a>
+</aside>
+
+<div class="page-wrapper">
+<main class="main-content">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <div class="breadcrumb"><i class="fas fa-home"></i><span>Início</span><i class="fas fa-chevron-right" style="font-size:10px;"></i><span>Meus Agendamentos</span></div>
+            <h1>Meus Agendamentos</h1>
+            <p>Gerencie, confirme ou cancele os pedidos dos seus clientes.</p>
+        </div>
+        <div class="header-actions">
+            <div class="view-toggle">
+                <button class="view-btn active" id="listViewBtn" onclick="setView('list')"><i class="fas fa-list"></i> Lista</button>
+                <button class="view-btn" id="calViewBtn" onclick="setView('cal')"><i class="fas fa-calendar-week"></i> Semana</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow">
+        <div class="stat-card c-blue"><div class="stat-icon"><i class="fas fa-list"></i></div><div class="stat-info"><strong id="statTotal">0</strong><span>Total</span></div></div>
+        <div class="stat-card c-yellow"><div class="stat-icon"><i class="fas fa-hourglass-half"></i></div><div class="stat-info"><strong id="statPending">0</strong><span>Pendentes</span></div></div>
+        <div class="stat-card c-green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-info"><strong id="statConfirmed">0</strong><span>Confirmados</span></div></div>
+        <div class="stat-card c-red"><div class="stat-icon"><i class="fas fa-times-circle"></i></div><div class="stat-info"><strong id="statCancelled">0</strong><span>Cancelados</span></div></div>
+    </div>
+
+    <!-- Export bar -->
+    <div class="export-bar">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> Exportar CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
+    </div>
+
+    <!-- Batch pending -->
+    <div class="batch-pending" id="batchPending" style="display:none;">
+        <div class="batch-pending-header">
+            <h3><i class="fas fa-exclamation-circle"></i> Pedidos aguardando confirmação (<span id="pendingCount">0</span>)</h3>
+            <div class="batch-actions">
+                <button class="btn-accept-all" onclick="acceptAll()"><i class="fas fa-check-double"></i> Aceitar todos</button>
+            </div>
+        </div>
+        <div id="batchPendingList"></div>
+    </div>
+
+    <!-- List view -->
+    <div id="listView">
+        <div class="filters-row">
+            <button class="chip active" data-filter="todos" onclick="setFilter(this)">Todos</button>
+            <button class="chip" data-filter="pending" onclick="setFilter(this)"><i class="fas fa-hourglass-half" style="font-size:11px;"></i> Pendentes</button>
+            <button class="chip" data-filter="confirmed" onclick="setFilter(this)"><i class="fas fa-check-circle" style="font-size:11px;"></i> Confirmados</button>
+            <button class="chip" data-filter="cancelled" onclick="setFilter(this)"><i class="fas fa-times-circle" style="font-size:11px;"></i> Cancelados</button>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar cliente ou serviço..." oninput="renderAppointments()">
+            </div>
+        </div>
+        <div class="appointments-grid" id="appointmentsGrid"></div>
+    </div>
+
+    <!-- Calendar view -->
+    <div id="calView" style="display:none;">
+        <div id="calendarGrid"></div>
+    </div>
+
+</main>
+
+<!-- Chat panel -->
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+        <div class="chat-avatar" id="chatAvatar">?</div>
+        <div class="chat-info"><strong id="chatClientName">Cliente</strong><span id="chatService">Serviço</span></div>
+        <button class="chat-close-btn" onclick="closeChat()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chat-messages-area" id="chatMessages"></div>
+    <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Digite uma mensagem..." onkeypress="handleChatKey(event)">
+        <button class="chat-send" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+</div>
+
+<!-- Cancel modal -->
+<div class="modal-backdrop" id="cancelModal">
+    <div class="modal" style="max-width:400px;">
+        <div class="modal-header"><span class="modal-title"><i class="fas fa-times-circle" style="color:var(--danger);margin-right:8px;"></i>Cancelar agendamento</span><button class="modal-close" onclick="closeCancelModal()"><i class="fas fa-times"></i></button></div>
+        <div class="cancel-modal-body" style="padding:20px 24px 24px;">
+            <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Informe o motivo do cancelamento para o cliente.</p>
+            <label for="cancelReason" style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Motivo do cancelamento</label>
+            <select id="cancelReason" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;margin-bottom:16px;background:var(--white);">
+                <option value="" disabled selected>Selecione um motivo</option>
+                <option value="Imprevisto pessoal/saúde">Imprevisto pessoal/saúde</option>
+                <option value="Problemas no estabelecimento">Problemas no estabelecimento</option>
+                <option value="Atraso excessivo do cliente">Atraso excessivo do cliente</option>
+                <option value="Outro">Outro motivo</option>
+            </select>
+            <div style="display:flex;gap:10px;">
+                <button class="btn-action btn-reject" style="flex:1;justify-content:center;color:white;background:var(--danger);" onclick="confirmCancel()"><i class="fas fa-times"></i> Cancelar</button>
+                <button class="btn-action" style="min-width:100px;justify-content:center;background:var(--bg);color:var(--text);" onclick="closeCancelModal()">Voltar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule modal -->
+<div class="modal-backdrop" id="rescheduleModal">
+    <div class="modal" style="max-width:380px;">
+        <div class="modal-header"><span class="modal-title"><i class="fas fa-calendar-alt" style="color:var(--primary);margin-right:8px;"></i>Reagendar</span><button class="modal-close" onclick="closeRescheduleModal()"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body" style="padding:20px 24px 24px;">
+            <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Proponha uma nova data e horário para o cliente.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div><label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">Nova data</label><input type="date" id="rescheduleDateInput" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;outline:none;background:var(--white);"></div>
+                <div><label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">Novo horário</label><input type="time" id="rescheduleTimeInput" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;outline:none;background:var(--white);"></div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:10px;">
+                <button class="btn-action" style="flex:1;justify-content:center;background:var(--primary);color:white;" onclick="confirmReschedule()"><i class="fas fa-check"></i> Confirmar</button>
+                <button class="btn-action" style="min-width:80px;justify-content:center;background:var(--bg);color:var(--text);" onclick="closeRescheduleModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+    <a href="dashboard_empreendedor.html" class="bottom-nav-item"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+    <a href="meus_agendamentos_empreendedor.html" class="bottom-nav-item active"><i class="fas fa-calendar-check"></i>Agenda</a>
+    <a href="disponibilidade_empreendedor.html" class="bottom-nav-item"><i class="fas fa-clock"></i>Horas</a>
+    <a href="perfil_empreendedor.html" class="bottom-nav-item"><i class="fas fa-user"></i>Perfil</a>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon"></i><span id="toastMsg"></span></div>
+
+<script>
+let appointments = JSON.parse(localStorage.getItem('agendai_emp_appointments')) || [
+    { id:1, cliente:'João Silva',    servico:'Corte de Cabelo',       data:'2026-04-23', hora:'14:00', status:'pending'   },
+    { id:2, cliente:'Maria Souza',   servico:'Manicure e Pedicure',   data:'2026-04-23', hora:'16:30', status:'pending'   },
+    { id:3, cliente:'Pedro Lima',    servico:'Consulta Nutricional',  data:'2026-04-24', hora:'09:00', status:'confirmed' },
+    { id:4, cliente:'Ana Beatriz',   servico:'Design de Sobrancelhas', data:'2026-04-25', hora:'11:00', status:'confirmed' },
+    { id:5, cliente:'Carlos Mendes', servico:'Barba Completa',         data:'2026-04-26', hora:'10:30', status:'cancelled' },
+    { id:6, cliente:'Fernanda Costa', servico:'Hidratação Capilar',   data:'2026-04-27', hora:'15:00', status:'confirmed' },
+];
+
+// Merge client appointments
+const clientAppts = JSON.parse(localStorage.getItem('meus_agendamentos_cliente') || '[]');
+clientAppts.forEach((ag, i) => {
+    if (!appointments.find(a => a.id === 100 + i)) {
+        appointments.push({ id:100+i, cliente:ag.nome||'Cliente', servico:ag.servico||ag.especialidade||'Serviço', data:ag.data||'', hora:ag.hora||'', status:'pending' });
+    }
+});
+
+let activeFilter = 'todos';
+let currentView = 'list';
+
+// Check URL param
+if (location.search.includes('f=pending')) { activeFilter = 'pending'; }
+
+/* Dark mode */
+function toggleDark() { const d=document.documentElement.classList.toggle('dark'); localStorage.setItem('agendai_dark',d?'1':'0'); }
+if (localStorage.getItem('agendai_dark')==='1') document.documentElement.classList.add('dark');
+
+/* View toggle */
+function setView(v) {
+    currentView = v;
+    document.getElementById('listViewBtn').classList.toggle('active', v==='list');
+    document.getElementById('calViewBtn').classList.toggle('active', v==='cal');
+    document.getElementById('listView').style.display = v==='list' ? '' : 'none';
+    document.getElementById('calView').style.display  = v==='cal'  ? '' : 'none';
+    if (v === 'cal') renderCalendar();
+}
+
+/* Filter */
+function setFilter(btn) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderAppointments();
+}
+
+/* Render */
+function renderAppointments() {
+    updateStats();
+    renderBatchPending();
+
+    const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    let filtered = appointments.filter(a => {
+        const matchFilter = activeFilter === 'todos' || a.status === activeFilter;
+        const matchSearch = a.cliente.toLowerCase().includes(query) || a.servico.toLowerCase().includes(query);
+        return matchFilter && matchSearch;
+    }).sort((a,b) => new Date(`${a.data}T${a.hora}`) - new Date(`${b.data}T${b.hora}`));
+
+    const grid = document.getElementById('appointmentsGrid');
+    if (!filtered.length) {
+        grid.innerHTML = `<div class="empty-state" style="background:var(--white);border-radius:16px;box-shadow:var(--shadow);"><i class="fas fa-calendar-off"></i><h3>Nenhum agendamento</h3><p>Nenhum resultado para os filtros selecionados.</p></div>`;
+        return;
+    }
+
+    const statusLabels = {
+        pending:   { cls:'badge-pending',   txt:'⏳ Pendente',   cardCls:'status-pending'   },
+        confirmed: { cls:'badge-confirmed', txt:'✅ Confirmado', cardCls:'status-confirmed' },
+        cancelled: { cls:'badge-cancelled', txt:'❌ Cancelado',  cardCls:'status-cancelled' },
+        completed: { cls:'badge-completed', txt:'🏆 Concluído',  cardCls:'status-completed' },
+    };
+
+    grid.innerHTML = filtered.map((a, i) => {
+        const { cls, txt, cardCls } = statusLabels[a.status] || statusLabels.pending;
+        const init = a.cliente.charAt(0).toUpperCase();
+        const [y,m,d] = (a.data||'').split('-');
+        const dateFmt = a.data ? `${d}/${m}/${y}` : '—';
+
+        return `
+        <div class="appt-card ${cardCls}" style="animation-delay:${i*0.04}s">
+            <div class="appt-avatar">${init}</div>
+            <div class="appt-info">
+                <h3>${a.cliente}</h3>
+                <div class="appt-meta">
+                    <span><i class="fas fa-cut"></i>${a.servico}</span>
+                    <span><i class="fas fa-calendar-day"></i>${dateFmt}</span>
+                    <span><i class="fas fa-clock"></i>${a.hora||'—'}</span>
+                </div>
+            </div>
+            <span class="badge ${cls}">${txt}</span>
+            <div class="appt-actions">
+                ${a.status==='pending' ? `
+                    <button class="btn-action btn-confirm" onclick="changeStatus(${a.id},'confirmed')"><i class="fas fa-check"></i>Aceitar</button>
+                    <button class="btn-action btn-reject" onclick="changeStatus(${a.id},'cancelled')"><i class="fas fa-times"></i>Recusar</button>
+                ` : ''}
+                ${a.status==='confirmed' ? `
+                    <button class="btn-action btn-complete" onclick="changeStatus(${a.id},'completed')"><i class="fas fa-flag-checkered"></i>Concluir</button>
+                    <button class="btn-action" style="background:var(--primary-light);color:var(--primary);" onclick="openReschedule(${a.id})"><i class="fas fa-calendar-alt"></i>Reagendar</button>
+                    <button class="btn-action btn-reject" onclick="openCancel(${a.id})"><i class="fas fa-times"></i>Cancelar</button>
+                ` : ''}
+                <button class="btn-action btn-chat" onclick="openChat(${a.id})"><i class="fas fa-comment"></i></button>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Update pending filter chip
+    const pendingCount = appointments.filter(a => a.status === 'pending').length;
+    const badge = document.getElementById('pendingBadge');
+    if (badge && pendingCount > 0) { badge.textContent = pendingCount; badge.classList.remove('hidden'); }
+}
+
+function updateStats() {
+    document.getElementById('statTotal').textContent    = appointments.length;
+    document.getElementById('statPending').textContent  = appointments.filter(a => a.status==='pending').length;
+    document.getElementById('statConfirmed').textContent = appointments.filter(a => a.status==='confirmed').length;
+    document.getElementById('statCancelled').textContent = appointments.filter(a => a.status==='cancelled').length;
+}
+
+/* Batch pending */
+function renderBatchPending() {
+    const pending = appointments.filter(a => a.status === 'pending');
+    const section = document.getElementById('batchPending');
+    if (!pending.length) { section.style.display='none'; return; }
+    section.style.display = 'block';
+    document.getElementById('pendingCount').textContent = pending.length;
+    document.getElementById('batchPendingList').innerHTML = pending.slice(0,4).map(a => {
+        const init = a.cliente.charAt(0).toUpperCase();
+        const [y,m,d] = (a.data||'').split('-');
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${init}</div>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${a.cliente}</div><div style="font-size:12px;color:var(--muted);">${a.servico} · ${d}/${m} às ${a.hora}</div></div>
+            <button class="btn-action btn-confirm" onclick="changeStatus(${a.id},'confirmed')" style="min-height:32px;"><i class="fas fa-check"></i></button>
+            <button class="btn-action btn-reject"  onclick="changeStatus(${a.id},'cancelled')" style="min-height:32px;"><i class="fas fa-times"></i></button>
+        </div>`;
+    }).join('');
+}
+
+function acceptAll() {
+    appointments.forEach(a => { if (a.status === 'pending') a.status = 'confirmed'; });
+    save();
+    renderAppointments();
+    showToast('✅ Todos os pedidos confirmados!', 'success');
+}
+
+function changeStatus(id, status) {
+    const idx = appointments.findIndex(a => a.id === id);
+    if (idx < 0) return;
+    appointments[idx].status = status;
+    save();
+    renderAppointments();
+    const msgs = { confirmed:'✅ Agendamento confirmado!', cancelled:'❌ Agendamento recusado.', completed:'🏆 Serviço concluído!' };
+    showToast(msgs[status] || 'Atualizado.', status === 'confirmed' || status === 'completed' ? 'success' : 'error');
+}
+
+function save() { localStorage.setItem('agendai_emp_appointments', JSON.stringify(appointments)); }
+
+/* Modals */
+let pendingActionId = null;
+function openCancel(id) { pendingActionId = id; document.getElementById('cancelModal').classList.add('open'); }
+function closeCancelModal() { document.getElementById('cancelModal').classList.remove('open'); pendingActionId = null; }
+function confirmCancel() {
+    if(!document.getElementById('cancelReason').value) return showToast('Selecione um motivo','error');
+    changeStatus(pendingActionId, 'cancelled');
+    closeCancelModal();
+}
+
+function openReschedule(id) {
+    pendingActionId = id;
+    const a = appointments.find(x => x.id === id);
+    if(a) { document.getElementById('rescheduleDateInput').value = a.data; document.getElementById('rescheduleTimeInput').value = a.hora; }
+    document.getElementById('rescheduleModal').classList.add('open');
+}
+function closeRescheduleModal() { document.getElementById('rescheduleModal').classList.remove('open'); pendingActionId = null; }
+function confirmReschedule() {
+    const d = document.getElementById('rescheduleDateInput').value;
+    const t = document.getElementById('rescheduleTimeInput').value;
+    if(!d || !t) return showToast('Preencha data e hora','error');
+    const idx = appointments.findIndex(a => a.id === pendingActionId);
+    if(idx>=0) { appointments[idx].data = d; appointments[idx].hora = t; appointments[idx].status = 'pending'; save(); renderAppointments(); showToast('Reagendado e enviado para confirmação!','success'); }
+    closeRescheduleModal();
+}
+
+/* Calendar view */
+function renderCalendar() {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+
+    const DAYS = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+    const hours = [8,9,10,11,12,13,14,15,16,17,18];
+
+    let header = '<div class="cal-week"><div class="cal-header"></div>';
+    const dates = [];
+    for (let d = 0; d < 7; d++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + d);
+        dates.push(date);
+        const isToday = date.toDateString() === today.toDateString();
+        header += `<div class="cal-header${isToday?' today-col':''}">${DAYS[d]}<br><strong>${date.getDate()}</strong></div>`;
+    }
+    header += '</div>';
+
+    let rows = '';
+    hours.forEach(h => {
+        rows += `<div class="cal-week"><div class="cal-time">${String(h).padStart(2,'0')}h</div>`;
+        dates.forEach(date => {
+            const dateStr = date.toISOString().slice(0,10);
+            const isToday = date.toDateString() === today.toDateString();
+            const appts = appointments.filter(a => a.data === dateStr && parseInt(a.hora?.split(':')[0]) === h && a.status !== 'cancelled');
+            rows += `<div class="cal-cell${isToday?' today-col':''}">`;
+            appts.forEach(a => { rows += `<div class="cal-event${a.status==='pending'?' pending':''}" title="${a.cliente}">${a.cliente.split(' ')[0]}<br>${a.hora}</div>`; });
+            rows += '</div>';
+        });
+        rows += '</div>';
+    });
+
+    document.getElementById('calendarGrid').innerHTML = `<div style="background:var(--border);border-radius:14px;overflow:hidden;border:1px solid var(--border);">${header}${rows}</div>`;
+}
+
+/* Chat */
+function openChat(id) {
+    const a = appointments.find(x => x.id === id);
+    if (!a) return;
+    document.getElementById('chatAvatar').textContent = a.cliente.charAt(0).toUpperCase();
+    document.getElementById('chatClientName').textContent = a.cliente;
+    document.getElementById('chatService').textContent = a.servico;
+    document.getElementById('chatMessages').innerHTML = `<div class="msg-bubble received">Olá! Tenho uma dúvida sobre meu agendamento. 😊</div>`;
+    document.getElementById('chatPanel').classList.add('open');
+}
+function closeChat() { document.getElementById('chatPanel').classList.remove('open'); }
+function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const msgs = document.getElementById('chatMessages');
+    msgs.innerHTML += `<div class="msg-bubble sent">${text}</div>`;
+    input.value = '';
+    msgs.scrollTop = msgs.scrollHeight;
+    setTimeout(() => { msgs.innerHTML += `<div class="msg-bubble received">Obrigado pela resposta! 👍</div>`; msgs.scrollTop = msgs.scrollHeight; }, 900);
+}
+function handleChatKey(e) { if (e.key === 'Enter') sendChatMessage(); }
+
+/* Export CSV */
+function exportCSV() {
+    const rows = [['ID','Cliente','Serviço','Data','Hora','Status']];
+    appointments.forEach(a => rows.push([a.id, a.cliente, a.servico, a.data, a.hora, a.status]));
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `agendamentos_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    showToast('Arquivo CSV exportado!', 'success');
+}
+
+/* Toast */
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    const icons = { success:'fas fa-check-circle', error:'fas fa-times-circle', info:'fas fa-info-circle' };
+    document.getElementById('toastIcon').className = icons[type] || icons.info;
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+renderAppointments();
+if (activeFilter !== 'todos') {
+    document.querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.filter === activeFilter);
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendai — Página não encontrada</title>
+    <link rel="icon" type="image/svg+xml" 
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' 
+          viewBox='0 0 24 24' fill='%233b82f6'>
+          <path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z'/>
+          </svg>">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%);
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Floating shapes */
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            pointer-events: none;
+        }
+        .s1 { width:400px; height:400px; top:-100px; left:-100px; }
+        .s2 { width:300px; height:300px; bottom:-80px; right:-80px; }
+        .s3 { width:200px; height:200px; top:50%; right:10%; }
+
+        .logo {
+            color: white;
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 60px;
+            text-decoration: none;
+            opacity: 0.9;
+        }
+
+        .error-code {
+            font-size: 120px;
+            font-weight: 900;
+            color: transparent;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+            -webkit-background-clip: text;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 8px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .error-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.4s ease both, float 3s ease-in-out infinite 0.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+            animation: fadeUp 0.5s ease 0.1s both;
+        }
+
+        p {
+            font-size: 16px;
+            color: rgba(255,255,255,0.65);
+            margin-bottom: 36px;
+            max-width: 400px;
+            line-height: 1.6;
+            animation: fadeUp 0.5s ease 0.2s both;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeUp 0.5s ease 0.3s both;
+        }
+
+        .btn-home {
+            padding: 13px 28px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 18px rgba(59,130,246,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 48px;
+        }
+
+        .btn-home:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.5); }
+
+        .btn-back {
+            padding: 13px 28px;
+            background: rgba(255,255,255,0.12);
+            border: 1.5px solid rgba(255,255,255,0.25);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+            min-height: 48px;
+        }
+
+        .btn-back:hover { background: rgba(255,255,255,0.2); }
+
+        .suggestions {
+            margin-top: 48px;
+            animation: fadeUp 0.5s ease 0.4s both;
+        }
+
+        .suggestions p {
+            font-size: 13px;
+            margin-bottom: 14px;
+            opacity: 0.6;
+        }
+
+        .suggestion-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .sug-link {
+            padding: 7px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 99px;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .sug-link:hover { background: rgba(255,255,255,0.22); }
+
+        /* Countdown */
+        .countdown {
+            margin-top: 32px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            animation: fadeUp 0.5s ease 0.5s both;
+        }
+
+        .countdown span { color: rgba(255,255,255,0.7); font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="shape s1"></div>
+    <div class="shape s2"></div>
+    <div class="shape s3"></div>
+
+    <a href="index.html" class="logo">
+        <i class="fas fa-calendar-alt"></i> Agendai
+    </a>
+
+    <div class="error-code">404</div>
+
+    <div class="error-icon">🗺️</div>
+
+    <h1>Ops! Página não encontrada</h1>
+    <p>Parece que você se perdeu pelo caminho. A página que você está procurando não existe ou foi movida.</p>
+
+    <div class="action-btns">
+        <a href="dashboard.html" class="btn-home"><i class="fas fa-home"></i> Ir para o Início</a>
+        <a href="javascript:history.back()" class="btn-back"><i class="fas fa-arrow-left"></i> Voltar</a>
+    </div>
+
+    <div class="suggestions">
+        <p>Ou acesse uma dessas páginas:</p>
+        <div class="suggestion-links">
+            <a href="meus_agendamentos.html" class="sug-link"><i class="fas fa-calendar-check" style="margin-right:5px;"></i>Meus Agendamentos</a>
+            <a href="dashboard_empreendedor.html" class="sug-link"><i class="fas fa-tachometer-alt" style="margin-right:5px;"></i>Painel</a>
+            <a href="index.html" class="sug-link"><i class="fas fa-sign-in-alt" style="margin-right:5px;"></i>Login</a>
+        </div>
+    </div>
+
+    <div class="countdown">Redirecionando em <span id="countdown">10</span>s...</div>
+
+    <script>
+        // Dark mode
+        if (localStorage.getItem('agendai_dark') === '1') document.documentElement.classList.add('dark');
+
+        // Auto-redirect countdown
+        let t = 10;
+        const el = document.getElementById('countdown');
+        const interval = setInterval(() => {
+            t--;
+            el.textContent = t;
+            if (t <= 0) {
+                clearInterval(interval);
+                document.body.classList.add('fade-out');
+                setTimeout(() => window.location.href = 'dashboard.html', 400);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendai — Dashboard Empreendedor</title>
+    <link rel="icon" type="image/svg+xml" 
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' 
+          viewBox='0 0 24 24' fill='%233b82f6'>
+          <path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z'/>
+          </svg>">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --success-dark: #065f46;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --danger-dark: #991b1b;
+            --sidebar-w: 260px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+            --radius: 16px;
+        }
+
+        body { display:flex; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 28px;
+            padding: 0 8px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo i { font-size: 24px; }
+
+        .sidebar-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 12px 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .main-content { flex:1; overflow-y:auto; }
+
+        /* Banner */
+        .top-banner { padding:40px 40px 32px; }
+        .banner-greeting { font-size:13px; font-weight:500; opacity:0.75; margin-bottom:6px; }
+        .banner-title { font-size:28px; font-weight:800; margin-bottom:5px; }
+        .banner-sub { font-size:14px; opacity:0.7; }
+
+        /* Body */
+        .page-body { padding:28px 40px 40px; }
+
+        /* Stats row */
+        .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px; }
+        .stat-card { cursor:pointer; }
+        .stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+
+        /* ── PENDING SECTION ── */
+        .pending-section {
+            background:var(--white);
+            border-radius:16px;
+            box-shadow:var(--shadow);
+            padding:20px;
+            margin-bottom:28px;
+            border-left:5px solid var(--warning);
+            animation:fadeUp 0.3s ease;
+        }
+
+        .pending-section-header {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            margin-bottom:16px;
+        }
+
+        .pending-section-header h2 { font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px; }
+        .pending-section-header h2 i { color:var(--warning); }
+
+        .pending-list { display:flex; flex-direction:column; gap:10px; }
+
+        .pending-card {
+            display:flex;
+            align-items:center;
+            gap:14px;
+            padding:14px 16px;
+            background:var(--bg);
+            border-radius:12px;
+            transition:var(--transition);
+            border:1px solid var(--border);
+        }
+        .pending-card:hover { background:var(--warning-light); border-color:var(--warning); }
+
+        .pending-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+        .pending-info { flex:1; min-width:0; }
+        .pending-info h4 { font-size:14px; font-weight:700; margin-bottom:2px; }
+        .pending-info span { font-size:12px; color:var(--muted); }
+
+        .pending-actions { display:flex; gap:8px; flex-shrink:0; }
+
+        .btn-accept { padding:7px 14px; border-radius:8px; background:var(--success-light); color:var(--success-dark); border:none; font-size:12px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; display:flex; align-items:center; gap:5px; transition:var(--transition); min-height:36px; }
+        .btn-accept:hover { background:var(--success); color:white; }
+
+        .btn-reject { padding:7px 14px; border-radius:8px; background:var(--danger-light); color:var(--danger-dark); border:none; font-size:12px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; display:flex; align-items:center; gap:5px; transition:var(--transition); min-height:36px; }
+        .btn-reject:hover { background:var(--danger); color:white; }
+
+        /* Section header */
+        .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+        .section-header h2 { font-size:17px; font-weight:700; display:flex; align-items:center; gap:10px; }
+        .section-header h2 i { color:var(--success); }
+        .link-manage { font-size:13px; font-weight:600; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:5px; transition:gap 0.2s; }
+        .link-manage:hover { gap:8px; }
+
+        /* Timeline */
+        .timeline { display:flex; flex-direction:column; gap:0; }
+        .day-label { display:flex; align-items:center; gap:10px; margin:18px 0 10px; }
+        .day-label .day-badge { background:var(--text); color:white; font-size:11px; font-weight:700; padding:4px 12px; border-radius:99px; text-transform:uppercase; letter-spacing:.05em; }
+        .day-label .day-badge.today { background:var(--primary); }
+        .day-label .day-badge.tomorrow { background:var(--success); }
+        .day-label hr { flex:1; border:none; border-top:1px dashed var(--border); }
+
+        .appt-card {
+            background:var(--white);
+            border-radius:14px;
+            box-shadow:var(--shadow);
+            padding:16px 20px;
+            display:flex;
+            align-items:center;
+            gap:16px;
+            border-left:5px solid var(--success);
+            margin-bottom:10px;
+            transition:transform 0.2s, box-shadow 0.2s;
+            animation:fadeUp 0.3s ease both;
+        }
+        .appt-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+
+        .appt-time { text-align:center; min-width:52px; flex-shrink:0; }
+        .appt-time .hour { font-size:20px; font-weight:800; line-height:1; }
+        .appt-time .period { font-size:11px; color:var(--muted); font-weight:500; }
+        .appt-divider { width:1px; height:44px; background:var(--border); flex-shrink:0; }
+        .appt-avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .appt-info { flex:1; min-width:0; }
+        .appt-info h3 { font-size:15px; font-weight:700; margin-bottom:3px; }
+        .appt-info p { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:5px; }
+        .appt-info p i { font-size:11px; color:var(--primary); }
+
+        /* Today timeline */
+        .today-timeline { margin-bottom:28px; }
+        .hours-strip { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+        .hours-strip::-webkit-scrollbar { display:none; }
+        .hour-block { flex-shrink:0; width:80px; }
+        .hour-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+        .hour-slot { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 6px; font-size:11px; color:var(--muted); text-align:center; min-height:52px; display:flex; align-items:center; justify-content:center; }
+        .hour-slot.has-appt { background:var(--success-light); border-color:var(--success); color:var(--success-dark); font-weight:700; cursor:pointer; }
+        .hour-slot.hour-now { border-color:var(--primary); background:var(--primary-light); color:var(--primary); font-weight:700; }
+
+        @media (max-width:900px) { .stats-row { grid-template-columns:1fr 1fr; } }
+        @media (max-width:768px) { .page-body { padding:20px; } .top-banner { padding:28px 20px 22px; } }
+    </style>
+</head>
+<body class="has-bottom-nav">
+
+<aside class="sidebar">
+    <a href="dashboard_empreendedor.html" class="sidebar-logo"><i class="fas fa-calendar-alt"></i> Agendai</a>
+    <span class="sidebar-section-label">Menu</span>
+    <a href="dashboard_empreendedor.html" class="sidebar-link active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="meus_agendamentos_empreendedor.html" class="sidebar-link"><i class="fas fa-calendar-check"></i> Agendamentos <span class="sidebar-badge hidden" id="pendingBadge">0</span></a>
+    <a href="disponibilidade_empreendedor.html" class="sidebar-link"><i class="fas fa-clock"></i> Disponibilidade</a>
+    <a href="perfil_empreendedor.html" class="sidebar-link"><i class="fas fa-user-circle"></i> Meu Perfil</a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+    <button class="sidebar-dark-toggle" onclick="toggleDark()"><i class="fas fa-moon"></i>Modo Escuro<div class="dark-toggle-knob" id="darkKnob"></div></button>
+    <div class="sidebar-divider"></div>
+    <a href="index.html" class="sidebar-link danger" onclick="event.preventDefault();document.body.classList.add('fade-out');setTimeout(()=>location.href='index.html',400);"><i class="fas fa-sign-out-alt"></i> Sair</a>
+</aside>
+
+<main class="main-content">
+    <div class="page-banner top-banner">
+        <div class="banner-greeting" id="greetingText">Bom dia 👋</div>
+        <div class="banner-title">Painel de Gestão</div>
+        <div class="banner-sub">Gerencie seus agendamentos e disponibilidade com facilidade.</div>
+    </div>
+
+    <div class="page-body">
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card c-blue clickable" onclick="location.href='meus_agendamentos_empreendedor.html'">
+                <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                <div class="stat-info">
+                    <strong id="statToday">0</strong>
+                    <span>Hoje</span>
+                </div>
+                <div class="stat-trend up" id="trendToday"><i class="fas fa-arrow-up"></i> 12%</div>
+            </div>
+            <div class="stat-card c-green clickable" onclick="location.href='meus_agendamentos_empreendedor.html?f=confirmed'">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <strong id="statTotal">0</strong>
+                    <span>Confirmados</span>
+                </div>
+                <div class="stat-trend up" id="trendTotal"><i class="fas fa-arrow-up"></i> 8%</div>
+            </div>
+            <div class="stat-card c-yellow clickable" onclick="location.href='meus_agendamentos_empreendedor.html?f=pending'" id="pendingCard">
+                <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="stat-info">
+                    <strong id="statPending">0</strong>
+                    <span>Pendentes</span>
+                </div>
+                <div class="stat-trend down hidden" id="trendPending"><i class="fas fa-exclamation"></i> Ação necessária</div>
+            </div>
+        </div>
+
+        <!-- Pending section -->
+        <div class="pending-section" id="pendingSection" style="display:none;">
+            <div class="pending-section-header">
+                <h2><i class="fas fa-exclamation-circle"></i> Aguardando sua confirmação</h2>
+                <a href="meus_agendamentos_empreendedor.html?f=pending" class="link-manage">Ver todos <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="pending-list" id="pendingList"></div>
+        </div>
+
+        <!-- Today's timeline -->
+        <div class="today-timeline" id="todaySection" style="display:none;">
+            <div class="section-header">
+                <h2 style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px;"><i class="fas fa-calendar-day" style="color:var(--primary);font-size:15px;"></i> Agenda de Hoje</h2>
+            </div>
+            <div class="hours-strip" id="hoursStrip"></div>
+        </div>
+
+        <!-- Confirmed timeline -->
+        <div class="section-header">
+            <h2><i class="fas fa-check-circle"></i> Próximos Confirmados</h2>
+            <a href="meus_agendamentos_empreendedor.html" class="link-manage">Gerenciar todos <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div id="timeline" class="timeline"></div>
+    </div>
+</main>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+    <a href="dashboard_empreendedor.html" class="bottom-nav-item active"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+    <a href="meus_agendamentos_empreendedor.html" class="bottom-nav-item"><i class="fas fa-calendar-check"></i>Agenda<span class="bn-badge hidden" id="bnBadge">0</span></a>
+    <a href="disponibilidade_empreendedor.html" class="bottom-nav-item"><i class="fas fa-clock"></i>Horas</a>
+    <a href="perfil_empreendedor.html" class="bottom-nav-item"><i class="fas fa-user"></i>Perfil</a>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon"></i><span id="toastMsg"></span></div>
+
+<script>
+/* ── DATA ── */
+let appointments = JSON.parse(localStorage.getItem('agendai_emp_appointments')) || [
+    { id:1, cliente:'João Silva',    servico:'Corte de Cabelo',       data:'2026-04-23', hora:'09:00', status:'confirmed' },
+    { id:2, cliente:'Maria Souza',   servico:'Manicure e Pedicure',   data:'2026-04-23', hora:'11:00', status:'pending'   },
+    { id:3, cliente:'Pedro Lima',    servico:'Consulta Nutricional',  data:'2026-04-24', hora:'09:00', status:'confirmed' },
+    { id:4, cliente:'Ana Beatriz',   servico:'Design de Sobrancelhas', data:'2026-04-25', hora:'14:00', status:'confirmed' },
+    { id:5, cliente:'Carlos Mendes', servico:'Barba Completa',         data:'2026-04-26', hora:'10:30', status:'pending'   },
+    { id:6, cliente:'Fernanda Costa', servico:'Hidratação Capilar',   data:'2026-04-27', hora:'15:00', status:'confirmed' },
+];
+localStorage.setItem('agendai_emp_appointments', JSON.stringify(appointments));
+
+/* ── GREETING ── */
+(function() {
+    const h = new Date().getHours();
+    document.getElementById('greetingText').textContent = h < 12 ? 'Bom dia 👋' : h < 18 ? 'Boa tarde 👋' : 'Boa noite 👋';
+})();
+
+/* ── DARK MODE ── */
+function toggleDark() {
+    const d = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('agendai_dark', d ? '1' : '0');
+}
+if (localStorage.getItem('agendai_dark') === '1') document.documentElement.classList.add('dark');
+
+/* ── DATES ── */
+function dateLabel(dateStr) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+    const d = new Date(dateStr + 'T00:00:00');
+    if (d.getTime() === today.getTime()) return { label:'Hoje', cls:'today' };
+    if (d.getTime() === tomorrow.getTime()) return { label:'Amanhã', cls:'tomorrow' };
+    return { label: d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}), cls:'' };
+}
+
+/* ── RENDER ── */
+function render() {
+    const today = new Date().toISOString().slice(0,10);
+    const pending   = appointments.filter(a => a.status === 'pending');
+    const confirmed = appointments.filter(a => a.status === 'confirmed').sort((a,b) => new Date(`${a.data}T${a.hora}`) - new Date(`${b.data}T${b.hora}`));
+
+    // Stats
+    document.getElementById('statTotal').textContent = confirmed.length;
+    document.getElementById('statToday').textContent = confirmed.filter(a => a.data === today).length;
+    document.getElementById('statPending').textContent = pending.length;
+
+    // Pending badge
+    const badge = document.getElementById('pendingBadge');
+    const bnBadge = document.getElementById('bnBadge');
+    if (pending.length > 0) {
+        badge.textContent = pending.length; badge.classList.remove('hidden');
+        bnBadge.textContent = pending.length; bnBadge.classList.remove('hidden');
+        document.getElementById('trendPending').classList.remove('hidden');
+    }
+
+    // Pending section
+    const pendingSection = document.getElementById('pendingSection');
+    if (pending.length > 0) {
+        pendingSection.style.display = 'block';
+        document.getElementById('pendingList').innerHTML = pending.slice(0,3).map(a => {
+            const init = a.cliente.charAt(0).toUpperCase();
+            const [y,m,d] = a.data.split('-');
+            return `
+            <div class="pending-card">
+                <div class="pending-avatar">${init}</div>
+                <div class="pending-info">
+                    <h4>${a.cliente}</h4>
+                    <span><i class="fas fa-cut" style="margin-right:4px;font-size:10px;color:var(--primary);"></i>${a.servico} · ${d}/${m} às ${a.hora}</span>
+                </div>
+                <div class="pending-actions">
+                    <button class="btn-accept" onclick="quickAction(${a.id},'confirmed')"><i class="fas fa-check"></i>Aceitar</button>
+                    <button class="btn-reject" onclick="quickAction(${a.id},'cancelled')"><i class="fas fa-times"></i>Recusar</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Today's hour strip
+    const todayAppts = confirmed.filter(a => a.data === today);
+    if (todayAppts.length > 0) {
+        document.getElementById('todaySection').style.display = 'block';
+        const hours = [8,9,10,11,12,13,14,15,16,17,18];
+        const now = new Date().getHours();
+        document.getElementById('hoursStrip').innerHTML = hours.map(h => {
+            const appt = todayAppts.find(a => parseInt(a.hora.split(':')[0]) === h);
+            const isNow = h === now;
+            return `<div class="hour-block">
+                <div class="hour-label">${String(h).padStart(2,'0')}h</div>
+                <div class="hour-slot${appt ? ' has-appt' : ''}${isNow && !appt ? ' hour-now' : ''}">${appt ? appt.cliente.split(' ')[0] : isNow ? '● Agora' : ''}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // Confirmed timeline
+    const timeline = document.getElementById('timeline');
+    if (!confirmed.length) {
+        timeline.innerHTML = `<div class="empty-state" style="background:var(--white);border-radius:16px;box-shadow:var(--shadow);"><i class="fas fa-calendar-check"></i><h3>Nenhum confirmado</h3><p>Aceite os pedidos pendentes para ver aqui.</p><a href="meus_agendamentos_empreendedor.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:var(--primary);color:white;padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;"><i class="fas fa-list"></i> Ver agendamentos</a></div>`;
+        return;
+    }
+
+    const groups = {};
+    confirmed.forEach(a => { if (!groups[a.data]) groups[a.data] = []; groups[a.data].push(a); });
+
+    let html = '';
+    Object.keys(groups).sort().forEach((date, gi) => {
+        const { label, cls } = dateLabel(date);
+        html += `<div class="day-group"><div class="day-label"><span class="day-badge ${cls}">${label}</span><hr></div>`;
+        groups[date].forEach((a, ai) => {
+            const init = a.cliente.charAt(0).toUpperCase();
+            html += `
+            <div class="appt-card" style="animation-delay:${(gi*3+ai)*0.06}s">
+                <div class="appt-time"><div class="hour">${a.hora}</div><div class="period">hr</div></div>
+                <div class="appt-divider"></div>
+                <div class="appt-avatar">${init}</div>
+                <div class="appt-info">
+                    <h3>${a.cliente}</h3>
+                    <p><i class="fas fa-cut"></i>${a.servico}</p>
+                </div>
+                <span class="badge badge-confirmed">✅ Confirmado</span>
+            </div>`;
+        });
+        html += '</div>';
+    });
+    timeline.innerHTML = html;
+}
+
+function quickAction(id, status) {
+    const idx = appointments.findIndex(a => a.id === id);
+    if (idx === -1) return;
+    appointments[idx].status = status;
+    localStorage.setItem('agendai_emp_appointments', JSON.stringify(appointments));
+    render();
+    showToast(status === 'confirmed' ? '✅ Agendamento confirmado!' : '❌ Agendamento recusado.', status === 'confirmed' ? 'success' : 'error');
+}
+
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    const icons = { success:'fas fa-check-circle', error:'fas fa-times-circle', info:'fas fa-info-circle' };
+    document.getElementById('toastIcon').className = icons[type] || icons.info;
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+render();
+
+// Simulate new appointment notification
+setTimeout(() => { showToast('🔔 Nova solicitação de agendamento!', 'info'); }, 3000);
+</script>
+</body>
+</html>

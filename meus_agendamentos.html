@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendai — Meus Agendamentos</title>
+    <link rel="icon" type="image/svg+xml" 
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' 
+          viewBox='0 0 24 24' fill='%233b82f6'>
+          <path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z'/>
+          </svg>">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { display: flex; }
+        .main-content { flex: 1; overflow-y: auto; }
+
+        /* Banner */
+        .page-banner { padding:28px 36px 22px; }
+        .breadcrumb { font-size:11px; opacity:0.7; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .page-banner h1 { font-size:22px; font-weight:800; margin-bottom:4px; }
+        .page-banner p { font-size:13px; opacity:0.75; }
+
+        /* Body */
+        .page-body { padding:24px 36px; }
+
+        /* Stats */
+        .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+
+        /* Notification alert */
+        .notif-alert {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            background:var(--success-light);
+            border:1.5px solid #a7f3d0;
+            border-radius:12px;
+            padding:12px 16px;
+            margin-bottom:20px;
+            animation:fadeUp 0.3s ease;
+        }
+        .notif-alert i { color:var(--success); font-size:18px; flex-shrink:0; }
+        .notif-alert span { font-size:14px; font-weight:600; color:var(--success-dark); flex:1; }
+        .notif-alert button { background:none; border:none; color:var(--success-dark); cursor:pointer; font-size:16px; padding:4px; }
+
+        /* Filters */
+        .filters-row { display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+        .search-box { margin-left:auto; position:relative; }
+        .search-box i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; }
+        .search-box input { padding:8px 12px 8px 32px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; outline:none; width:180px; transition:border-color 0.2s, box-shadow 0.2s; min-height:36px; background:var(--white); color:var(--text); }
+        .search-box input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+
+        /* Appointments list */
+        .appointments-list { display:flex; flex-direction:column; gap:12px; }
+
+        .appt-card {
+            background:var(--white);
+            border-radius:12px;
+            border:1px solid var(--border);
+            box-shadow:0 1px 3px rgba(0,0,0,0.04);
+            padding:16px 18px;
+            display:flex;
+            align-items:center;
+            gap:14px;
+            transition:transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            animation:fadeUp 0.3s ease both;
+        }
+        .appt-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); border-color:rgba(59,130,246,0.1); }
+        .appt-card.s-pending   { border-left: 5px solid var(--warning); }
+        .appt-card.s-confirmed { border-left: 5px solid var(--success); }
+        .appt-card.s-completed { border-left: 5px solid var(--purple); }
+        .appt-card.s-cancelled { opacity:0.55; filter:grayscale(0.2); }
+
+        .appt-avatar {
+            width:42px; height:42px;
+            border-radius:10px;
+            color:white;
+            font-size:16px; font-weight:700;
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0;
+        }
+        .s-pending .appt-avatar   { background:linear-gradient(135deg,#f59e0b,#d97706); }
+        .s-confirmed .appt-avatar { background:linear-gradient(135deg,#10b981,#065f46); }
+        .s-completed .appt-avatar { background:linear-gradient(135deg,#8b5cf6,#6d28d9); }
+        .s-cancelled .appt-avatar { background:linear-gradient(135deg,#94a3b8,#64748b); }
+
+        .appt-info { flex:1; min-width:0; }
+        .appt-info .appt-name-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap; }
+        .appt-info h3 { font-size:14px; font-weight:700; }
+        .appt-meta { display:flex; gap:12px; flex-wrap:wrap; }
+        .appt-meta span { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:4px; }
+        .appt-meta i { font-size:10px; color:var(--primary); }
+        .appt-price { font-weight:700; color:var(--text) !important; }
+
+        .appt-actions { display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+
+        .btn-action-sm {
+            padding:7px 12px;
+            border-radius:8px;
+            border:1.5px solid var(--border);
+            background:var(--white);
+            color:var(--muted);
+            font-size:12px; font-weight:600;
+            font-family:'Inter',sans-serif;
+            cursor:pointer;
+            transition:var(--transition);
+            display:flex; align-items:center; gap:5px;
+            min-height:34px;
+            white-space:nowrap;
+        }
+        .btn-action-sm:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+        .btn-action-sm.btn-cancel-sm { color:var(--danger); }
+        .btn-action-sm.btn-cancel-sm:hover { border-color:var(--danger); color:var(--danger); background:var(--danger-light); }
+        .btn-action-sm.btn-rate-sm { color:#f59e0b; }
+        .btn-action-sm.btn-rate-sm:hover { border-color:#f59e0b; color:#f59e0b; background:var(--warning-light); }
+        .btn-action-sm.btn-reschedule-sm { color:var(--primary); }
+        .btn-action-sm.btn-reschedule-sm:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+
+        /* Cancel modal */
+        .cancel-modal-body { padding:20px 24px 24px; }
+        .cancel-modal-body label { font-size:13px; font-weight:600; color:var(--text); display:block; margin-bottom:8px; }
+        .cancel-select { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; color:var(--text); background:var(--white); outline:none; transition:border-color 0.2s; min-height:42px; margin-bottom:16px; }
+        .cancel-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+
+        /* Rating modal */
+        .rating-pro-name { font-size:18px; font-weight:800; margin-bottom:4px; }
+        .rating-svc-name { font-size:13px; color:var(--muted); margin-bottom:20px; }
+        .stars-row { display:flex; gap:8px; margin-bottom:16px; font-size:36px; }
+        .star-btn { background:none; border:none; cursor:pointer; color:var(--border2); font-size:36px; transition:color 0.15s, transform 0.15s; }
+        .star-btn:hover, .star-btn.lit { color:#f59e0b; transform:scale(1.1); }
+        .rating-textarea { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; resize:none; outline:none; transition:border-color 0.2s; background:var(--bg); color:var(--text); }
+        .rating-textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+
+        /* Reschedule modal */
+        .reschedule-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .reschedule-grid label { font-size:12px; font-weight:600; color:var(--muted); display:block; margin-bottom:5px; }
+        .reschedule-grid input { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.2s; min-height:42px; background:var(--white); color:var(--text); }
+        .reschedule-grid input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+
+        @media (max-width:768px) { .stats-row { grid-template-columns:1fr 1fr; } .page-body { padding:16px; } .page-banner { padding:22px 20px 18px; } .appt-card { flex-wrap:wrap; } .appt-actions { width:100%; justify-content:flex-start; } }
+        @media (max-width:480px) { .stats-row { grid-template-columns:1fr; } .appt-card { padding:14px 16px; } }
+    </style>
+</head>
+<body class="has-bottom-nav">
+
+<aside class="sidebar">
+    <a href="dashboard.html" class="sidebar-logo"><i class="fas fa-calendar-alt"></i> Agendai</a>
+    <span class="sidebar-section-label">Navegação</span>
+    <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Início</a>
+    <a href="meus_agendamentos.html" class="sidebar-link active"><i class="fas fa-calendar-check"></i> Meus Agendamentos</a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+    <button class="sidebar-dark-toggle" onclick="toggleDark()"><i class="fas fa-moon"></i>Modo Escuro<div class="dark-toggle-knob" id="darkKnob"></div></button>
+    <div class="sidebar-divider"></div>
+    <a href="index.html" class="sidebar-link danger" onclick="event.preventDefault();document.body.classList.add('fade-out');setTimeout(()=>location.href='index.html',400);"><i class="fas fa-sign-out-alt"></i> Sair</a>
+</aside>
+
+<main class="main-content">
+    <div class="page-banner">
+        <div class="breadcrumb"><i class="fas fa-home"></i> Início <i class="fas fa-chevron-right" style="font-size:10px;"></i> Meus Agendamentos</div>
+        <h1>Meus Agendamentos</h1>
+        <p>Acompanhe, gerencie e avalie seus agendamentos.</p>
+    </div>
+
+    <div class="page-body">
+
+        <!-- Notification alert -->
+        <div class="notif-alert hidden" id="notifAlert">
+            <i class="fas fa-bell"></i>
+            <span id="notifText">Seu agendamento foi confirmado!</span>
+            <button onclick="this.closest('.notif-alert').classList.add('hidden')"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card c-blue"><div class="stat-icon"><i class="fas fa-list"></i></div><div class="stat-info"><strong id="statTotal">0</strong><span>Total</span></div></div>
+            <div class="stat-card c-green"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-info"><strong id="statUpcoming">0</strong><span>Ativos</span></div></div>
+            <div class="stat-card c-red"><div class="stat-icon"><i class="fas fa-times-circle"></i></div><div class="stat-info"><strong id="statCancelled">0</strong><span>Cancelados</span></div></div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-row">
+            <button class="chip active" data-f="todos" onclick="setFilter(this)">Todos</button>
+            <button class="chip" data-f="pending" onclick="setFilter(this)">⏳ Pendentes</button>
+            <button class="chip" data-f="confirmed" onclick="setFilter(this)">✅ Confirmados</button>
+            <button class="chip" data-f="completed" onclick="setFilter(this)">🏆 Concluídos</button>
+            <button class="chip" data-f="cancelled" onclick="setFilter(this)">❌ Cancelados</button>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar..." oninput="render()">
+            </div>
+        </div>
+
+        <!-- List -->
+        <div class="appointments-list" id="apptList"></div>
+    </div>
+</main>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+    <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-home"></i>Início</a>
+    <a href="meus_agendamentos.html" class="bottom-nav-item active"><i class="fas fa-calendar-check"></i>Agendamentos</a>
+    <a href="index.html" class="bottom-nav-item" onclick="event.preventDefault();document.body.classList.add('fade-out');setTimeout(()=>location.href='index.html',400);"><i class="fas fa-sign-out-alt"></i>Sair</a>
+</nav>
+
+<!-- Cancel modal -->
+<div class="modal-backdrop" id="cancelModal">
+    <div class="modal" style="max-width:400px;">
+        <div class="modal-header"><span class="modal-title"><i class="fas fa-times-circle" style="color:var(--danger);margin-right:8px;"></i>Cancelar agendamento</span><button class="modal-close" onclick="closeCancelModal()"><i class="fas fa-times"></i></button></div>
+        <div class="cancel-modal-body">
+            <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Tem certeza? Cancelamentos feitos com menos de 2h de antecedência podem gerar cobrança.</p>
+            <label for="cancelReason">Motivo do cancelamento</label>
+            <select id="cancelReason" class="cancel-select">
+                <option value="" disabled selected>Selecione um motivo</option>
+                <option value="Mudança de planos">Mudança de planos</option>
+                <option value="Imprevisto pessoal">Imprevisto pessoal</option>
+                <option value="Erro no horário">Erro no horário</option>
+                <option value="Preço">Preço</option>
+                <option value="Outro">Outro motivo</option>
+            </select>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-danger btn-full" onclick="confirmCancel()"><i class="fas fa-times"></i> Cancelar agendamento</button>
+                <button class="btn btn-ghost" onclick="closeCancelModal()" style="min-width:100px;">Voltar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rating modal -->
+<div class="modal-backdrop" id="ratingModal">
+    <div class="modal" style="max-width:400px;">
+        <div class="modal-header"><span class="modal-title"><i class="fas fa-star" style="color:#f59e0b;margin-right:8px;"></i>Avaliar serviço</span><button class="modal-close" onclick="closeRatingModal()"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <div class="rating-pro-name" id="ratingProName"></div>
+            <div class="rating-svc-name" id="ratingSvcName"></div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Sua nota:</div>
+            <div class="stars-row" id="starsRow">
+                <button class="star-btn" data-v="1" onclick="setStar(1)">★</button>
+                <button class="star-btn" data-v="2" onclick="setStar(2)">★</button>
+                <button class="star-btn" data-v="3" onclick="setStar(3)">★</button>
+                <button class="star-btn" data-v="4" onclick="setStar(4)">★</button>
+                <button class="star-btn" data-v="5" onclick="setStar(5)">★</button>
+            </div>
+            <textarea class="rating-textarea" id="ratingText" rows="3" placeholder="Conte sua experiência (opcional)..."></textarea>
+            <div style="margin-top:16px;display:flex;gap:10px;">
+                <button class="btn btn-primary btn-full" onclick="submitRating()"><i class="fas fa-paper-plane"></i> Enviar avaliação</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule modal -->
+<div class="modal-backdrop" id="rescheduleModal">
+    <div class="modal" style="max-width:380px;">
+        <div class="modal-header"><span class="modal-title"><i class="fas fa-calendar-alt" style="color:var(--primary);margin-right:8px;"></i>Reagendar</span><button class="modal-close" onclick="closeRescheduleModal()"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Escolha uma nova data e horário para seu agendamento.</p>
+            <div class="reschedule-grid">
+                <div><label>Nova data</label><input type="date" id="rescheduleDateInput"></div>
+                <div><label>Novo horário</label><input type="time" id="rescheduleTimeInput"></div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:10px;">
+                <button class="btn btn-primary btn-full" onclick="confirmReschedule()"><i class="fas fa-check"></i> Confirmar</button>
+                <button class="btn btn-ghost" onclick="closeRescheduleModal()" style="min-width:80px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon"></i><span id="toastMsg"></span></div>
+
+<script>
+let agendamentos = JSON.parse(localStorage.getItem('meus_agendamentos_cliente') || '[]');
+let currentFilter = 'todos';
+let pendingCancelIdx = null;
+let pendingRescheduleIdx = null;
+let pendingRateIdx = null;
+let selectedStar = 0;
+
+/* ── DEMO DATA ── */
+if (!agendamentos.length) {
+    agendamentos = [
+        { id:1, nome:'Ana Oliveira', especialidade:'Cabeleireira', servico:'Corte', preco:60, data:'2026-04-25', hora:'10:00', status:'confirmed' },
+        { id:2, nome:'Carlos Mendes', especialidade:'Barbeiro', servico:'Barba', preco:35, data:'2026-04-28', hora:'14:00', status:'pending' },
+        { id:3, nome:'Dra. Beatriz Lima', especialidade:'Nutricionista', servico:'Consulta', preco:150, data:'2026-03-15', hora:'09:00', status:'completed' },
+        { id:4, nome:'Larissa Pereira', especialidade:'Manicure', servico:'Manicure', preco:40, data:'2026-03-10', hora:'11:00', status:'cancelled' },
+    ];
+    localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+}
+
+/* Check for new confirmed */
+(function() {
+    const confirmed = agendamentos.filter(a => a.status === 'confirmed');
+    if (confirmed.length) {
+        const el = document.getElementById('notifAlert');
+        const txt = document.getElementById('notifText');
+        txt.textContent = `✅ ${confirmed[0].nome} confirmou seu agendamento de ${confirmed[0].servico} para ${fmtDate(confirmed[0].data)} às ${confirmed[0].hora}!`;
+        el.classList.remove('hidden');
+    }
+})();
+
+function fmtDate(d) {
+    if (!d) return '—';
+    const [y,m,day] = d.split('-');
+    return `${day}/${m}/${y}`;
+}
+
+function setFilter(btn) {
+    document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.f;
+    render();
+}
+
+function render() {
+    updateStats();
+    const q = document.getElementById('searchInput').value.toLowerCase();
+
+    let list = agendamentos.filter(a => {
+        const matchFilter = currentFilter === 'todos' || a.status === currentFilter || (currentFilter === 'pending' && !a.status);
+        const matchSearch = !q || (a.nome||'').toLowerCase().includes(q) || (a.servico||'').toLowerCase().includes(q);
+        return matchFilter && matchSearch;
+    }).sort((a,b) => new Date(`${b.data}T${b.hora||'00:00'}`) - new Date(`${a.data}T${a.hora||'00:00'}`));
+
+    const container = document.getElementById('apptList');
+    if (!list.length) {
+        container.innerHTML = `<div class="empty-state" style="background:var(--white);border-radius:16px;box-shadow:var(--shadow);"><i class="fas fa-calendar-times"></i><h3>Nenhum agendamento encontrado</h3><p>Tente outro filtro ou <a href="dashboard.html" style="color:var(--primary);font-weight:600;">encontre um profissional</a>.</p></div>`;
+        return;
+    }
+
+    container.innerHTML = list.map((ag, idx) => {
+        const realIdx = agendamentos.indexOf(ag);
+        const status = ag.status || 'pending';
+        const statusLabels = {
+            pending:   { cls:'badge-pending',   txt:'⏳ Aguardando',  cardCls:'s-pending'   },
+            confirmed: { cls:'badge-confirmed', txt:'✅ Confirmado',  cardCls:'s-confirmed' },
+            completed: { cls:'badge-completed', txt:'🏆 Concluído',   cardCls:'s-completed' },
+            cancelled: { cls:'badge-cancelled', txt:'❌ Cancelado',   cardCls:'s-cancelled' },
+        };
+        const { cls, txt, cardCls } = statusLabels[status] || statusLabels.pending;
+        const initial = (ag.nome || 'P').charAt(0).toUpperCase();
+
+        return `
+        <div class="appt-card ${cardCls}" style="animation-delay:${idx*0.05}s">
+            <div class="appt-avatar">${initial}</div>
+            <div class="appt-info">
+                <div class="appt-name-row">
+                    <h3>${ag.nome || 'Profissional'}</h3>
+                    <span class="badge ${cls}">${txt}</span>
+                </div>
+                <div class="appt-meta">
+                    <span><i class="fas fa-cut"></i>${ag.servico || ag.especialidade || 'Serviço'}</span>
+                    <span><i class="fas fa-calendar-day"></i>${fmtDate(ag.data)}</span>
+                    <span><i class="fas fa-clock"></i>${ag.hora || '—'}</span>
+                    ${ag.preco ? `<span class="appt-price"><i class="fas fa-tag"></i>R$ ${ag.preco}</span>` : ''}
+                </div>
+            </div>
+            <div class="appt-actions">
+                ${status === 'completed' && !ag.rated ? `<button class="btn-action-sm btn-rate-sm" onclick="openRating(${realIdx})"><i class="fas fa-star"></i> Avaliar</button>` : ''}
+                ${status === 'pending' ? `<button class="btn-action-sm btn-reschedule-sm" onclick="openReschedule(${realIdx})"><i class="fas fa-calendar-alt"></i> Reagendar</button>` : ''}
+                ${status === 'confirmed' ? `<button class="btn-action-sm btn-reschedule-sm" onclick="alert('Para reagendar um horário já confirmado, entre em contato com o profissional.')"><i class="fas fa-calendar-alt"></i> Reagendar</button>` : ''}
+                ${status === 'pending' ? `<button class="btn-action-sm btn-cancel-sm" onclick="openCancel(${realIdx})"><i class="fas fa-times"></i> Cancelar</button>` : ''}
+                ${status === 'confirmed' ? `<button class="btn-action-sm btn-cancel-sm" onclick="alert('Para cancelar, entre em contato com o profissional.')"><i class="fas fa-comment-slash"></i> Cancelar</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function updateStats() {
+    document.getElementById('statTotal').textContent = agendamentos.length;
+    document.getElementById('statUpcoming').textContent = agendamentos.filter(a => a.status !== 'cancelled' && a.status !== 'completed').length;
+    document.getElementById('statCancelled').textContent = agendamentos.filter(a => a.status === 'cancelled').length;
+}
+
+/* Cancel */
+function openCancel(idx) { pendingCancelIdx = idx; document.getElementById('cancelModal').classList.add('open'); }
+function closeCancelModal() { document.getElementById('cancelModal').classList.remove('open'); pendingCancelIdx = null; }
+function confirmCancel() {
+    const reason = document.getElementById('cancelReason').value;
+    if (!reason) { showToast('Selecione um motivo.', 'error'); return; }
+    agendamentos[pendingCancelIdx].status = 'cancelled';
+    agendamentos[pendingCancelIdx].cancelReason = reason;
+    localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+    closeCancelModal();
+    render();
+    showToast('Agendamento cancelado.', 'error');
+}
+
+/* Reschedule */
+function openReschedule(idx) {
+    pendingRescheduleIdx = idx;
+    const ag = agendamentos[idx];
+    document.getElementById('rescheduleDateInput').value = ag.data || '';
+    document.getElementById('rescheduleTimeInput').value = ag.hora || '';
+    document.getElementById('rescheduleModal').classList.add('open');
+}
+function closeRescheduleModal() { document.getElementById('rescheduleModal').classList.remove('open'); pendingRescheduleIdx = null; }
+function confirmReschedule() {
+    const newDate = document.getElementById('rescheduleDateInput').value;
+    const newTime = document.getElementById('rescheduleTimeInput').value;
+    if (!newDate || !newTime) { showToast('Preencha data e horário.', 'error'); return; }
+    agendamentos[pendingRescheduleIdx].data = newDate;
+    agendamentos[pendingRescheduleIdx].hora = newTime;
+    agendamentos[pendingRescheduleIdx].status = 'pending';
+    localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+    closeRescheduleModal();
+    render();
+    showToast('Agendamento reagendado!', 'success');
+}
+
+/* Rating */
+function openRating(idx) {
+    pendingRateIdx = idx;
+    selectedStar = 0;
+    const ag = agendamentos[idx];
+    document.getElementById('ratingProName').textContent = ag.nome;
+    document.getElementById('ratingSvcName').textContent = ag.servico || ag.especialidade;
+    document.getElementById('ratingText').value = '';
+    updateStars(0);
+    document.getElementById('ratingModal').classList.add('open');
+}
+function closeRatingModal() { document.getElementById('ratingModal').classList.remove('open'); pendingRateIdx = null; }
+function setStar(v) { selectedStar = v; updateStars(v); }
+function updateStars(v) {
+    document.querySelectorAll('.star-btn').forEach((btn,i) => btn.classList.toggle('lit', i < v));
+}
+function submitRating() {
+    if (!selectedStar) { showToast('Selecione uma nota!', 'error'); return; }
+    agendamentos[pendingRateIdx].rated = true;
+    agendamentos[pendingRateIdx].rating = selectedStar;
+    agendamentos[pendingRateIdx].ratingText = document.getElementById('ratingText').value;
+    localStorage.setItem('meus_agendamentos_cliente', JSON.stringify(agendamentos));
+    closeRatingModal();
+    render();
+    showToast('Avaliação enviada! Obrigado 🙏', 'success');
+}
+
+/* Dark mode */
+function toggleDark() {
+    const d = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('agendai_dark', d ? '1' : '0');
+}
+if (localStorage.getItem('agendai_dark') === '1') document.documentElement.classList.add('dark');
+
+/* Toast */
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    const icons = { success:'fas fa-check-circle', error:'fas fa-times-circle', info:'fas fa-info-circle' };
+    document.getElementById('toastIcon').className = icons[type] || icons.info;
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+render();
+</script>
+</body>
+</html>
