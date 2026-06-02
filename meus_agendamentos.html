@@ -137,6 +137,36 @@
         .reschedule-grid input { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.2s; min-height:42px; background:var(--white); color:var(--text); }
         .reschedule-grid input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
 
+        /* ── CHAT PANEL ── */
+        .chat-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:800; backdrop-filter:blur(2px); }
+        .chat-overlay.open { display:block; }
+
+        .chat-panel { position:fixed; top:0; right:-400px; width:370px; height:100vh; background:var(--white); box-shadow:-8px 0 32px rgba(0,0,0,0.12); z-index:900; display:flex; flex-direction:column; transition:right 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .chat-panel.open { right:0; }
+
+        .chat-panel-header { padding:18px 20px; background:linear-gradient(135deg,var(--primary),var(--primary-hover)); color:white; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+        .chat-p-avatar { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; }
+        .chat-p-info { flex:1; }
+        .chat-p-info strong { display:block; font-size:15px; font-weight:700; }
+        .chat-p-info span { font-size:12px; opacity:0.8; }
+        .chat-p-status { font-size:11px; background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:99px; white-space:nowrap; }
+
+        .chat-close { background:rgba(255,255,255,0.15); border:none; color:white; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+        .chat-close:hover { background:rgba(255,255,255,0.3); }
+
+        .chat-messages { flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; background:#f8fafc; }
+
+        .msg { max-width:85%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.5; }
+        .msg.sent { background:var(--primary); color:white; align-self:flex-end; border-bottom-right-radius:4px; }
+        .msg.received { background:white; color:var(--text); align-self:flex-start; border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+        .msg-time { font-size:10px; opacity:0.6; margin-top:4px; }
+
+        .chat-input-row { padding:14px; border-top:1px solid var(--border); display:flex; gap:8px; background:var(--white); }
+        .chat-input-row input { flex:1; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.2s, box-shadow 0.2s; min-height:44px; }
+        .chat-input-row input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+        .chat-send { width:44px; height:44px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:background 0.2s; flex-shrink:0; }
+        .chat-send:hover { background:var(--primary-hover); }
+
         @media (max-width:768px) { .stats-row { grid-template-columns:1fr 1fr; } .page-body { padding:16px; } .page-banner { padding:22px 20px 18px; } .appt-card { flex-wrap:wrap; } .appt-actions { width:100%; justify-content:flex-start; } }
         @media (max-width:480px) { .stats-row { grid-template-columns:1fr; } .appt-card { padding:14px 16px; } }
     </style>
@@ -267,6 +297,43 @@
     </div>
 </div>
 
+<!-- Confirmed Action Modal -->
+<div class="modal-backdrop" id="confirmedContactModal">
+    <div class="modal" style="max-width:400px;">
+        <div class="modal-header">
+            <span class="modal-title" id="confirmedModalTitle">Ação necessária</span>
+            <button class="modal-close" onclick="closeConfirmedContactModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="padding:20px 24px 24px; text-align:center;">
+            <div id="confirmedModalIcon" style="font-size:48px; margin-bottom:16px;"></div>
+            <p id="confirmedModalMsg" style="font-size:14px; color:var(--muted); margin-bottom:20px; line-height:1.5;"></p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn btn-primary btn-full" id="confirmedModalChatBtn"><i class="fas fa-comment"></i> Conversar com o Profissional</button>
+                <button class="btn btn-ghost" onclick="closeConfirmedContactModal()">Voltar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat overlay -->
+<div class="chat-overlay" id="chatOverlay" onclick="closeChat()"></div>
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+        <div class="chat-p-avatar" id="chatAvatar">?</div>
+        <div class="chat-p-info">
+            <strong id="chatName">Profissional</strong>
+            <span id="chatSvc">Serviço</span>
+        </div>
+        <span class="chat-p-status" id="chatStatus">🟢 Online</span>
+        <button class="chat-close" onclick="closeChat()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-row">
+        <input type="text" id="chatMsgInput" placeholder="Digite uma mensagem..." onkeypress="chatKeyPress(event)">
+        <button class="chat-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"><i class="fas fa-check-circle" id="toastIcon"></i><span id="toastMsg"></span></div>
 
@@ -359,9 +426,10 @@ function render() {
             <div class="appt-actions">
                 ${status === 'completed' && !ag.rated ? `<button class="btn-action-sm btn-rate-sm" onclick="openRating(${realIdx})"><i class="fas fa-star"></i> Avaliar</button>` : ''}
                 ${status === 'pending' ? `<button class="btn-action-sm btn-reschedule-sm" onclick="openReschedule(${realIdx})"><i class="fas fa-calendar-alt"></i> Reagendar</button>` : ''}
-                ${status === 'confirmed' ? `<button class="btn-action-sm btn-reschedule-sm" onclick="alert('Para reagendar um horário já confirmado, entre em contato com o profissional.')"><i class="fas fa-calendar-alt"></i> Reagendar</button>` : ''}
+                ${status === 'confirmed' ? `<button class="btn-action-sm btn-reschedule-sm" onclick="openConfirmedContactModal('${ag.nome}', '${ag.servico || ag.especialidade || 'Serviço'}', 'reschedule')"><i class="fas fa-calendar-alt"></i> Reagendar</button>` : ''}
+                <button class="btn-action-sm" onclick="openChat('${ag.nome}', '${ag.servico || ag.especialidade || 'Serviço'}')"><i class="fas fa-comment"></i> Chat</button>
                 ${status === 'pending' ? `<button class="btn-action-sm btn-cancel-sm" onclick="openCancel(${realIdx})"><i class="fas fa-times"></i> Cancelar</button>` : ''}
-                ${status === 'confirmed' ? `<button class="btn-action-sm btn-cancel-sm" onclick="alert('Para cancelar, entre em contato com o profissional.')"><i class="fas fa-comment-slash"></i> Cancelar</button>` : ''}
+                ${status === 'confirmed' ? `<button class="btn-action-sm btn-cancel-sm" onclick="openConfirmedContactModal('${ag.nome}', '${ag.servico || ag.especialidade || 'Serviço'}', 'cancel')"><i class="fas fa-comment-slash"></i> Cancelar</button>` : ''}
             </div>
         </div>`;
     }).join('');
@@ -435,6 +503,68 @@ function submitRating() {
     render();
     showToast('Avaliação enviada! Obrigado 🙏', 'success');
 }
+
+/* ── CONFIRMED ACTIONS MODAL ── */
+function openConfirmedContactModal(proName, service, type) {
+    const modal = document.getElementById('confirmedContactModal');
+    const title = document.getElementById('confirmedModalTitle');
+    const msg = document.getElementById('confirmedModalMsg');
+    const icon = document.getElementById('confirmedModalIcon');
+    const chatBtn = document.getElementById('confirmedModalChatBtn');
+
+    if (type === 'reschedule') {
+        title.innerHTML = '<i class="fas fa-calendar-alt" style="color:var(--primary);margin-right:8px;"></i>Reagendar Horário';
+        icon.innerHTML = '📅';
+        msg.textContent = `Para reagendar um horário já confirmado com ${proName}, é necessário entrar em contato diretamente com o profissional para verificar a nova disponibilidade.`;
+        chatBtn.onclick = () => { closeConfirmedContactModal(); openChat(proName, service, 'Olá! Gostaria de reagendar meu horário confirmado.'); };
+    } else {
+        title.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger);margin-right:8px;"></i>Cancelar Agendamento';
+        icon.innerHTML = '⚠️';
+        msg.textContent = `Seu agendamento com ${proName} já está confirmado. Para cancelar, por favor entre em contato com o profissional para formalizar a desistência.`;
+        chatBtn.onclick = () => { closeConfirmedContactModal(); openChat(proName, service, 'Olá! Gostaria de cancelar meu agendamento confirmado.'); };
+    }
+
+    modal.classList.add('open');
+}
+
+function closeConfirmedContactModal() { document.getElementById('confirmedContactModal').classList.remove('open'); }
+
+/* ── CHAT ── */
+function openChat(proName, service, initialMsg) {
+    const initials = proName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('chatAvatar').textContent = initials;
+    document.getElementById('chatName').textContent = proName;
+    document.getElementById('chatSvc').textContent = service;
+    const time = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('chatMessages').innerHTML = `
+        <div class="msg received"><div class="msg-time">${time}</div>Olá! Como posso te ajudar com seu agendamento? 😊</div>
+        ${initialMsg ? `<div class="msg sent"><div class="msg-time">${time}</div>${initialMsg}</div>` : ''}
+    `;
+    document.getElementById('chatOverlay').classList.add('open');
+    document.getElementById('chatPanel').classList.add('open');
+}
+
+function closeChat() {
+    document.getElementById('chatOverlay').classList.remove('open');
+    document.getElementById('chatPanel').classList.remove('open');
+}
+
+function sendMsg() {
+    const input = document.getElementById('chatMsgInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const msgs = document.getElementById('chatMessages');
+    const time = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    msgs.innerHTML += `<div class="msg sent"><div class="msg-time">${time}</div>${text}</div>`;
+    input.value = '';
+    msgs.scrollTop = msgs.scrollHeight;
+    setTimeout(() => {
+        msgs.innerHTML += `<div class="msg received"><div class="msg-time">${time}</div>Recebemos sua mensagem! O profissional entrará em contato em breve. 👍</div>`;
+        msgs.scrollTop = msgs.scrollHeight;
+    }, 1200);
+}
+
+function chatKeyPress(e) { if (e.key === 'Enter') sendMsg(); }
 
 /* Dark mode */
 function toggleDark() {

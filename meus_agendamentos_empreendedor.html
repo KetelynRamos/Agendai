@@ -189,20 +189,29 @@
         /* Export bar */
         .export-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
 
-        /* Chat panel */
-        .chat-panel { width:320px; background:var(--white); border-left:1px solid var(--border); display:none; flex-direction:column; flex-shrink:0; }
-        .chat-panel.open { display:flex; }
-        .chat-panel-header { padding:18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
-        .chat-panel-header .chat-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center; }
-        .chat-panel-header .chat-info strong { display:block; font-size:14px; font-weight:700; }
-        .chat-panel-header .chat-info span { font-size:12px; color:var(--muted); }
-        .chat-close-btn { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:4px; border-radius:6px; transition:color 0.2s; margin-left:auto; }
-        .chat-close-btn:hover { color:var(--danger); background:var(--danger-light); }
+        /* ── CHAT PANEL (ESTILO IGUAL AO CLIENTE) ── */
+        .chat-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:800; backdrop-filter:blur(2px); }
+        .chat-overlay.open { display:block; }
+
+        .chat-panel { position:fixed; top:0; right:-400px; width:370px; height:100vh; background:var(--white); box-shadow:-8px 0 32px rgba(0,0,0,0.12); z-index:900; display:flex; flex-direction:column; transition:right 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .chat-panel.open { right:0; }
+
+        .chat-panel-header { padding:18px 20px; background:linear-gradient(135deg,var(--primary),var(--primary-hover)); color:white; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+        .chat-avatar-top { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; }
+        .chat-info-top { flex:1; }
+        .chat-info-top strong { display:block; font-size:15px; font-weight:700; }
+        .chat-info-top span { font-size:12px; opacity:0.8; }
+        .chat-close-btn { background:rgba(255,255,255,0.15); border:none; color:white; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:background 0.2s; margin-left:auto; }
+        .chat-close-btn:hover { background:rgba(255,255,255,0.3); color:white; }
+
         .chat-messages-area { flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; background:#f8fafc; }
-        .msg-bubble { max-width:85%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.5; }
-        .msg-bubble.sent { background:var(--primary); color:white; align-self:flex-end; border-bottom-right-radius:4px; }
-        .msg-bubble.received { background:white; color:var(--text); align-self:flex-start; border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-        .chat-input-row { padding:14px; border-top:1px solid var(--border); display:flex; gap:8px; }
+        .msg-bubble { max-width:85%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.5; position:relative; }
+        .msg-bubble.sent { background:var(--primary); color:white; align-self:flex-end; border-bottom-right-radius:2px; }
+        .msg-bubble.received { background:white; color:var(--text); align-self:flex-start; border-bottom-left-radius:2px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+        .msg-time { font-size:10px; opacity:0.6; margin-top:4px; display:block; text-align:right; }
+        .msg-bubble.received .msg-time { text-align:left; }
+
+        .chat-input-row { padding:14px; border-top:1px solid var(--border); display:flex; gap:8px; background:var(--white); }
         .chat-input-row input { flex:1; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
         .chat-input-row input:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
         .chat-send { width:40px; height:40px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:background 0.2s; flex-shrink:0; }
@@ -290,14 +299,17 @@
     <div id="calView" style="display:none;">
         <div id="calendarGrid"></div>
     </div>
-
 </main>
 
-<!-- Chat panel -->
+<!-- Chat overlay -->
+<div class="chat-overlay" id="chatOverlay" onclick="closeChat()"></div>
 <div class="chat-panel" id="chatPanel">
     <div class="chat-panel-header">
-        <div class="chat-avatar" id="chatAvatar">?</div>
-        <div class="chat-info"><strong id="chatClientName">Cliente</strong><span id="chatService">Serviço</span></div>
+        <div class="chat-avatar-top" id="chatAvatar">?</div>
+        <div class="chat-info-top">
+            <strong id="chatClientName">Cliente</strong>
+            <span id="chatService">Serviço</span>
+        </div>
         <button class="chat-close-btn" onclick="closeChat()"><i class="fas fa-times"></i></button>
     </div>
     <div class="chat-messages-area" id="chatMessages"></div>
@@ -578,25 +590,66 @@ function renderCalendar() {
 }
 
 /* Chat */
+let currentChatClient = null;
+
 function openChat(id) {
     const a = appointments.find(x => x.id === id);
     if (!a) return;
+    
+    currentChatClient = a.cliente;
     document.getElementById('chatAvatar').textContent = a.cliente.charAt(0).toUpperCase();
     document.getElementById('chatClientName').textContent = a.cliente;
     document.getElementById('chatService').textContent = a.servico;
-    document.getElementById('chatMessages').innerHTML = `<div class="msg-bubble received">Olá! Tenho uma dúvida sobre meu agendamento. 😊</div>`;
+    
+    loadChatHistory(a.cliente);
+    document.getElementById('chatOverlay').classList.add('open');
     document.getElementById('chatPanel').classList.add('open');
+    document.getElementById('chatInput').focus();
 }
-function closeChat() { document.getElementById('chatPanel').classList.remove('open'); }
+
+function closeChat() {
+    document.getElementById('chatOverlay').classList.remove('open');
+    document.getElementById('chatPanel').classList.remove('open');
+}
+
+function loadChatHistory(clientName) {
+    const msgsArea = document.getElementById('chatMessages');
+    const history = JSON.parse(localStorage.getItem(`chat_emp_${clientName}`)) || [
+        { sender: 'client', text: 'Olá! Tenho uma dúvida sobre meu agendamento. 😊', time: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) }
+    ];
+    
+    msgsArea.innerHTML = history.map(m => `
+        <div class="msg-bubble ${m.sender === 'me' ? 'sent' : 'received'}">
+            ${m.text}
+            <span class="msg-time">${m.time}</span>
+        </div>
+    `).join('');
+    msgsArea.scrollTop = msgsArea.scrollHeight;
+}
+
 function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text || !currentChatClient) return;
+
     const msgs = document.getElementById('chatMessages');
-    msgs.innerHTML += `<div class="msg-bubble sent">${text}</div>`;
+    const time = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    
+    // Render and Save
+    const newMsg = { sender: 'me', text, time };
+    const history = JSON.parse(localStorage.getItem(`chat_emp_${currentChatClient}`)) || [];
+    history.push(newMsg);
+    localStorage.setItem(`chat_emp_${currentChatClient}`, JSON.stringify(history));
+
+    msgs.innerHTML += `
+        <div class="msg-bubble sent">
+            ${text}
+            <span class="msg-time">${time}</span>
+        </div>
+    `;
+    
     input.value = '';
     msgs.scrollTop = msgs.scrollHeight;
-    setTimeout(() => { msgs.innerHTML += `<div class="msg-bubble received">Obrigado pela resposta! 👍</div>`; msgs.scrollTop = msgs.scrollHeight; }, 900);
 }
 function handleChatKey(e) { if (e.key === 'Enter') sendChatMessage(); }
 
